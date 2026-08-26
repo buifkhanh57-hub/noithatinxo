@@ -359,3 +359,21 @@ Work Log:
 Stage Summary:
 - Verified: lint 0 errors; tsc --noEmit clean; curl SSR checks (title/canonical/OG/JSON-LD/sitemap/robots/404-vs-200); agent-browser e2e deep-link renders full storefront UI at /san-pham/ban-lam-viec-go-oak-avh-od; login API returns ADMIN session for buifkhanh57@gmail.com with AVHSTORE@123; ensureAdminAccountsExist created 5 admins locally (adminsProvisioned:5)
 - Production build NOT runnable in sandbox per platform rule (bun run build forbidden); tsc+lint+dev-runtime are the quality gates here — Vercel build will run prisma generate + next build on Postgres env
+
+---
+Task ID: 4
+Agent: main (orchestrator)
+Task: Push with PAT + fix ChunkLoadError (admin-view.tsx)
+
+Work Log:
+- User provided GitHub PAT after password-auth failed; remote URL updated to ghp_ token; PUSHED main → origin/main (60e843b..e6ea602): auth/upload fix + SEO/san-pham route + admin seeding now on GitHub
+- User-reported Runtime ChunkLoadError: lazy chunk src_lib_auth-client_ts from admin-view failed during AvhShell hydration
+- ROOT CAUSE: stale .next Turbopack dev cache — spa-shell refactor changed chunk topology mid-session; browser/dev held old hashes
+- FIX: pkill next + rm -rf .next + clean restart (no source changes needed)
+- Agent-browser E2E verified: fresh page → footer 🔒 Khu vực quản trị via DOM click → ui-store {view:admin} → AdminView mounts ("Bảng điều khiển" h1) → /api/admin/stats 200, /api/admin/settings 200 → console ZERO chunk errors
+- Auth store persistence verified: avh-auth localStorage keeps role=ADMIN buifkhanh57@gmail.com hasToken=true across server restarts
+- Flakiness notes: sandbox reaps background dev server between tool calls (workaround: health-check+restart wrapper per block); zombie HMR page after server restart needs hard reload before trusting click tests
+
+Stage Summary:
+- GitHub repo up to date at e6ea602 on main
+- ChunkLoadError resolved by cache clear; runtime interactive flows (login→admin→stats) verified in real browser
