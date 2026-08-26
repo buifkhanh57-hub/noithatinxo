@@ -420,3 +420,24 @@ Stage Summary:
 - Danh mục nổi bật: chỉ còn ảnh + tên như yêu cầu "bỏ mấy cái viền, để mỗi ảnh và tên thôi".
 - Incident: ChunkLoadError tái xuất trong phiên test do kill/restart giữa chừng khiến Turbopack chunk stale — xử lý bằng pkill + rm -rf .next + khởi động lại; sau đó ERROR COUNT=0 qua toàn bộ luồng. Chunk src_* do Turbopack phục vụ on-demand (không nằm trên đĩa ở dev), production (Vercel) không có race này.
 - Gate: tsc --noEmit sạch, eslint sạch, tất cả route health 200.
+
+---
+Task ID: 6
+Agent: Z.ai Code (main)
+Task: Kiểm tra webhook SePay trên domain mới https://noithatinxo.vercel.app và cung cấp link để cấu hình vào SePay dashboard.
+
+Work Log:
+- Đọc lại src/app/api/payments/sepay/webhook/route.ts: xác nhận luồng HMAC-SHA256 (X-SePay-Signature, signedPayload "<timestamp>.<rawBody>" nếu có X-SePay-Timestamp, fallback raw body), kiểm tra tài khoản nhận cố định (isFixedBankAccount), idempotent, response dạng flat success:true đúng quy cách SePay.
+- Kiểm tra src/middleware.ts: matcher chạy mọi route nhưng chỉ thêm security headers + chặn path-traversal — KHÔNG chặn /api/payments/* → webhook tiếp cận được từ Internet.
+- Test live trên https://noithatinxo.vercel.app:
+  + GET  /                          → 200 OK
+  + GET  /api/payments/sepay/webhook → 405 METHOD_NOT_ALLOWED (endpoint đã deploy + sống)
+  + POST /api/payments/sepay/webhook (body, không signature) → 401 UNAUTHORIZED "Missing X-SePay-Signature header" → chứng minh SEPAY_WEBHOOK_SECRET ĐÃ cấu hình trên Vercel (nếu thiếu sẽ trả 500 CONFIG_ERROR trước khi kiểm signature).
+  + robots.txt + sitemap.xml đều phát sinh URL https://noithatinxo.vercel.app → NEXT_PUBLIC_SITE_URL đúng domain mới, SEO chuẩn.
+- Cập nhật doc-comment trong route.ts: thay URL preview cũ bằng domain sản phẩm mới + ghi chú signing scheme.
+- Commit + push main.
+
+Stage Summary:
+- WEBHOOK URL cho SePay dashboard: https://noithatinxo.vercel.app/api/payments/sepay/webhook
+- Endpoint đã xác minh sống, bảo mật HMAC hoạt động, secret env có sẵn trên Vercel.
+- Lưu ý cho chủ shop: Webhook Secret trong SePay dashboard phải TRÙNG GIÁ TRỊ với env SEPAY_WEBHOOK_SECRET trên Vercel; đổi secret ở SePay thì phải cập nhật env Vercel + redeploy.

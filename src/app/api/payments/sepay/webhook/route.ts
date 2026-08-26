@@ -35,8 +35,9 @@ import { logInfo, logWarn, logError } from '@/lib/system-log'
  *   400/500    → { "success": false, "code": "...", "message": "..." }
  *
  * WEBHOOK URL (configured in Sepay dashboard):
- *   https://preview-chat-8c74607f-f594-4cec-9388-a95629b6487a.space-z.ai/api/payments/sepay/webhook
+ *   https://noithatinxo.vercel.app/api/payments/sepay/webhook
  *   Header to send: X-SePay-Signature: <hex HMAC-SHA256(rawBody, SECRET)>
+ *   (If X-SePay-Timestamp is present, signed payload = "<timestamp>.<rawBody>".)
  */
 export async function POST(req: NextRequest) {
   // ── 1. Read the raw request body ────────────────────────────────────
