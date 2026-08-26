@@ -10,9 +10,11 @@
  *
  * The server `page.tsx` for each route renders its own SEO metadata (title,
  * canonical, OG, JSON-LD) and passes the matching view here; the shell then
- * mounts it silently and takes over as a normal SPA. All in-app navigation
- * keeps working instantly AND syncs the URL via history.pushState, while a
- * popstate listener keeps back/forward correct.
+ * mounts it silently. Moving between pages performs a REAL browser
+ * navigation (window.location.assign) — every page loads fresh like a
+ * classic website — while refinements inside one page (shop filters) stay
+ * instant via Zustand + history.pushState, and popstate keeps back/forward
+ * correct for those in-page swaps.
  */
 
 export interface ShellRoute {
@@ -20,7 +22,13 @@ export interface ShellRoute {
   params?: Record<string, string | undefined>
 }
 
-import { useEffect, useRef, lazy, Suspense, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, lazy, Suspense, useState } from 'react'
+
+// useLayoutEffect warns during SSR — fall back to useEffect on the server.
+// On the client this MUST stay a layout effect so route→view correction runs
+// before the first paint (no flash of the stale persisted view).
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect
 import { ArrowUp } from 'lucide-react'
 import { Header } from '@/components/avh/header'
 import { Footer } from '@/components/avh/footer'
@@ -162,11 +170,18 @@ export function AvhShell({ route }: { route?: ShellRoute }) {
   // localStorage. Guest on /gio-hang must see the cart, not their old admin
   // session's screen.
   //
+  // CRITICAL: this runs in useLayoutEffect (NOT useEffect) so the correction
+  // happens BEFORE the browser paints the first frame. With real-page
+  // navigation (every click reloads the document), an effect-run-after-paint
+  // would flash the stale persisted view for a frame on EVERY page load.
+  // Layout effects run after hydration commit but before paint → the very
+  // first thing the customer sees is already the right page.
+  //
   // Static routes (/san-pham) can't forward ?query= from the server page, so
   // when no explicit params arrive we read them from window.location at
   // mount time → refresh preserves filters like /san-pham?cat=phong-khach.
   const initial = useRef<ShellRoute | undefined>(route)
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!initial.current) return
     const st = useUIStore.getState()
     let params = initial.current.params ?? {}

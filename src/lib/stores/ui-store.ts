@@ -2,18 +2,23 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { viewPath } from '@/lib/view-routes'
+import { viewPath, viewBase } from '@/lib/view-routes'
 
 /**
- * UI navigation store — drives the SPA-style view switching across every
- * route. Since v2 each view also owns a REAL url (/gio-hang, /san-pham/<slug>,
- * /blog/<slug>, …): setView() pushes the matching path into browser history,
- * so any page is shareable, refreshable, and back/forward works.
+ * UI navigation store — REAL-PAGE navigation across every route.
+ *
+ * Since v3 each view owns a real url (/gio-hang, /san-pham/<slug>,
+ * /blog/<slug>, …) and setView() navigates the BROWSER to it:
+ *   - moving to another PAGE  → window.location.assign() → the new page is
+ *     fetched and rendered fresh, exactly like a classic website
+ *     ("sang trang là load trang mới như mấy web khác" — yêu cầu của chủ shop)
+ *   - refining the SAME page  (e.g. /san-pham → /san-pham?cat=phong-khach)
+ *     → instant in-place swap + pushState so filters stay snappy yet shareable
  *
  * Two setters:
- *   setView        — user navigation inside the app (syncs the URL)
+ *   setView        — user navigation (drives the browser to the right URL)
  *   setViewSilent  — mount/restore from a real URL or popstate
- *                    (URL already correct → do NOT push again)
+ *                    (URL already correct → never navigate again)
  */
 
 export type ViewName =
@@ -57,8 +62,8 @@ interface UIState {
 
 /**
  * Push `path` into history unless it already matches the current URL.
- * Native History API keeps this a pure client-side swap — Next does not
- * re-render server components and no chunk reloads happen.
+ * Used ONLY for same-page refinements — the URL is kept shareable without
+ * a document reload.
  */
 function syncUrl(view: ViewName, params: ViewParams) {
   if (typeof window === 'undefined') return
@@ -82,12 +87,42 @@ export const useUIStore = create<UIState>()(
       chatOpen: false,
       mobileSearchOpen: false,
       setView: (view, params = {}) => {
-        set({ view, params, cartOpen: false, mobileSearchOpen: false })
-        syncUrl(view, params)
-        // Don't auto-scroll on view change — customers complained the smooth
-        // scroll-to-top animation felt jarring (page "jumps up to the header"
-        // whenever they clicked a product / category). They'd rather keep
-        // their scroll position so they can browse naturally.
+        // SSR safety: no window → pure state update only.
+        if (typeof window === 'undefined') {
+          set({ view, params, cartOpen: false, mobileSearchOpen: false })
+          return
+        }
+
+        const target = viewPath(view, params)
+        const current = window.location.pathname + window.location.search
+
+        // Already on exactly this address → just sync internal state.
+        // (Prevents reload loops: route pages force their own view on mount
+        // and views may re-assert their params afterwards.)
+        if (target === current) {
+          set({ view, params, cartOpen: false, mobileSearchOpen: false })
+          return
+        }
+
+        // Same-page refinement (e.g. /san-pham?cat=a → /san-pham?cat=b):
+        // stay instant like a modern storefront but keep the URL shareable.
+        if (viewBase(view) === window.location.pathname) {
+          set({ view, params, cartOpen: false, mobileSearchOpen: false })
+          syncUrl(view, params)
+          return
+        }
+
+        // DIFFERENT PAGE → REAL browser navigation. The new URL is fetched
+        // and rendered fresh — headers, SEO metadata and the page itself all
+        // come from the server route, exactly like "mấy web khác". The whole
+        // document is replaced right after this call, so we don't touch
+        // persisted state here; each real route mounts its own view cleanly.
+        try {
+          window.location.assign(target)
+        } catch {
+          set({ view, params, cartOpen: false, mobileSearchOpen: false })
+          syncUrl(view, params)
+        }
       },
       setViewSilent: (view, params = {}) => {
         set({ view, params, cartOpen: false, mobileSearchOpen: false })

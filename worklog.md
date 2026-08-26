@@ -398,3 +398,25 @@ Work Log:
 Stage Summary:
 - Every page now has a shareable/refreshable/back-forwardable URL without losing SPA speed or breaking existing setView call sites
 - SEO surfaces cover product detail, shop list, blog list/detail, static info pages; private flows stay no-index
+
+---
+Task ID: 5
+Agent: Z.ai Code (main)
+Task: Chuyển điều hướng sang REAL-PAGE navigation (sang trang = trình duyệt load trang mới như website thường) + sửa Danh mục nổi bật bỏ viền/khung chỉ còn ảnh + tên.
+
+Work Log:
+- src/lib/view-routes.ts: thêm helper viewBase(view) — pathname gốc không query, dùng để phân biệt "sang trang khác" vs "lọc trong cùng trang".
+- src/lib/stores/ui-store.ts (v3): viết lại setView():
+  + target == URL hiện tại → chỉ set state (chống reload loop khi route page force view).
+  + cùng pathname (lọc/facet trong /san-pham) → set state + history.pushState (giữ mượt, URL vẫn share được).
+  + khác trang → window.location.assign(viewPath()) = điều hướng thật, trình duyệt tải trang mới; server route render SEO metadata + shell mount đúng view.
+- src/components/avh/spa-shell.tsx: đổi force-view từ useEffect sang useIsomorphicLayoutEffect — sửa view TRƯỚC frame đầu tiên, triệt tiêu flash view stale (localStorage lưu view cũ) trên mỗi lần tải trang mới; cập nhật doc-comment mô tả cơ chế navigation mới.
+- src/components/avh/views/home-view.tsx: tile Danh mục nổi bật bỏ hẳn border/bg-card/p-3/đếm "N SP" — chỉ còn ảnh tròn dịu (rounded-xl) + tên; đổi button → <a href="/san-pham?cat=<slug>"> thật (middle-click, crawlable); thêm <nav aria-label>.
+- Kiểm chứng agent-browser e2e: click danh mục → /san-pham?cat=phong-ngu navigation.type="navigate"; click sản phẩm → /san-pham/sofa-3-cho-...-avh-300 type="navigate" + title SEO đầy đủ; logo → "/" ; footer → /blog; back → back_forward; deep-link /gio-hang đè view admin bị poison trong localStorage (layout effect) → vẫn hiện Giỏ hàng; ERROR COUNT = 0 xuyên suốt (sau khi rebuild sạch .next).
+- Screenshot desktop + mobile khu Danh mục nổi bật: không còn viền/khung, 6 tile ảnh + tên, grid 3 cột mobile / 6 cột desktop.
+
+Stage Summary:
+- Hành vi mới: MỌI lần chuyển trang (header, footer, card sản phẩm, danh mục, thanh-toan, order-success...) đều là tải trang thật giống website truyền thống; chỉ lọc trong /san-pham giữ instant SPA.
+- Danh mục nổi bật: chỉ còn ảnh + tên như yêu cầu "bỏ mấy cái viền, để mỗi ảnh và tên thôi".
+- Incident: ChunkLoadError tái xuất trong phiên test do kill/restart giữa chừng khiến Turbopack chunk stale — xử lý bằng pkill + rm -rf .next + khởi động lại; sau đó ERROR COUNT=0 qua toàn bộ luồng. Chunk src_* do Turbopack phục vụ on-demand (không nằm trên đĩa ở dev), production (Vercel) không có race này.
+- Gate: tsc --noEmit sạch, eslint sạch, tất cả route health 200.

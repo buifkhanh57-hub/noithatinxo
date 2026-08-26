@@ -81,6 +81,25 @@ export function viewPath(
 }
 
 /**
+ * Base pathname of a view WITHOUT query string. Used by setView() to tell
+ * "navigating to another PAGE" (→ full browser load, like any classic
+ * website) apart from "facet tweak on the SAME page" (e.g. /san-pham →
+ * /san-pham?cat=phong-khach → smooth in-place swap, URL kept shareable).
+ */
+export function viewBase(view: string): string {
+  switch (view) {
+    case 'product':
+      return '/san-pham'
+    case 'blog-detail':
+      return '/blog'
+    case 'order-success':
+      return '/dat-hang/thanh-cong'
+    default:
+      return VIEWS[view]?.base ?? '/'
+  }
+}
+
+/**
  * Inverse of viewPath() — maps a browser pathname back to the SPA view that
  * should be mounted. Unknown paths fall back to home.
  */

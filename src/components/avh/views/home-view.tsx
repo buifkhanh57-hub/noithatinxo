@@ -81,33 +81,41 @@ export function HomeView() {
         ))}
       </section>
 
-      {/* Categories */}
+      {/* Categories — frameless tiles: chỉ ảnh + tên, không viền/khung */}
       <section className="mt-8">
         <SectionHeader title="Danh mục nổi bật" subtitle="Duyệt theo không gian sống" />
         {!mounted || !categories ? (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-lg" />)}
+          <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setView('shop', { cat: c.slug })}
-                className="group relative flex flex-col items-center gap-2 overflow-hidden rounded-lg border bg-card p-3 transition hover:shadow-md"
-              >
-                <div className="relative aspect-square w-full overflow-hidden rounded-md bg-muted">
-                  {c.imageUrl ? (
-                    <Image src={c.imageUrl} alt={c.name} fill sizes="120px" className="object-cover transition group-hover:scale-105" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-2xl">🪑</div>
-                  )}
-                </div>
-                <p className="text-center text-xs font-medium sm:text-sm">{c.name}</p>
-                <span className="text-[10px] text-muted-foreground">{c.productCount} SP</span>
-              </button>
-            ))}
-          </div>
+          <nav aria-label="Danh mục sản phẩm">
+            <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+              {categories.map((c) => (
+                <a
+                  key={c.id}
+                  href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
+                  className="group flex flex-col items-center gap-2 text-center"
+                  title={c.name}
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted">
+                    {c.imageUrl ? (
+                      <Image
+                        src={c.imageUrl}
+                        alt={c.name}
+                        fill
+                        sizes="(max-width: 640px) 33vw, 160px"
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-2xl">🪑</div>
+                    )}
+                  </div>
+                  <p className="line-clamp-1 text-xs font-medium sm:text-sm group-hover:text-primary">{c.name}</p>
+                </a>
+              ))}
+            </div>
+          </nav>
         )}
       </section>
 
