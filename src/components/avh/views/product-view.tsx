@@ -18,6 +18,7 @@ import { useCompareStore } from '@/lib/stores/compare-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { useRecentStore } from '@/lib/stores/recent-store'
 import { formatVND, discountPct } from '@/lib/format'
+import { productUrl } from '@/lib/site-url'
 import { StarRating } from '@/components/avh/star-rating'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
 
@@ -281,17 +282,28 @@ function ProductContent({ product }: { product: ProductDetail }) {
     toast.success('Đã thêm vào khay so sánh')
   }
 
+  // Canonical deep-link for sharing: /san-pham/<slug>. Falls back to the
+  // current URL when the slug isn't known yet. Shared links resolve to a
+  // server-rendered SEO page (title/OG/JSON-LD) instead of bare "/".
+  function shareTargetUrl(): string {
+    try {
+      return product.slug ? productUrl(product.slug) : window.location.href
+    } catch {
+      return typeof window !== 'undefined' ? window.location.href : '/'
+    }
+  }
+
   async function handleCopyLink() {
     try {
-      await navigator.clipboard.writeText(window.location.href)
-      toast.success('Đã sao chép liên kết')
+      await navigator.clipboard.writeText(shareTargetUrl())
+      toast.success('Đã sao chép link sản phẩm')
     } catch {
       toast.error('Không thể sao chép liên kết')
     }
   }
 
   function handleFacebookShare() {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareTargetUrl())}`
     if (typeof window !== 'undefined') {
       window.open(url, '_blank', 'noopener,noreferrer,width=600,height=600')
     }

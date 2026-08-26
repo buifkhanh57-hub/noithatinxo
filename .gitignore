@@ -53,3 +53,13 @@ prompt
 server.log
 # Skills directory
 /skills/
+# SQLite dev database — NEVER commit (Vercel/Postgres only; contains local data)
+/db/*.db
+/db/*.db-journal
+
+# Sandbox scaffold utilities (kept locally, not part of the store app)
+/examples/
+/mini-services/
+/download/
+/tool-results/
+/upload/

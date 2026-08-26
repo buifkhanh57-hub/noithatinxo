@@ -338,3 +338,24 @@ Testing (Agent Browser, tất cả PASS):
 Stage Summary:
 - Upload giờ LUÔN mang token; access hết hạn → tự refresh + retry đúng 1 lần; chết thật → thông báo đúng + mở login; phân biệt đủ 8+ loại lỗi; không retry vô hạn; không bỏ auth để "cho qua".
 - Files changed: src/lib/{auth-token,api,auth-client,upload-client,middleware/admin-guard}.ts, src/app/api/auth/{login,register,logout,me,oauth-login,refresh(new),google/callback}/route.ts, src/app/api/upload/route.ts, src/app/api/{orders,addresses,addresses/[id]}/route.ts, src/components/avh/{media-uploader,views/admin-view}.tsx, src/app/page.tsx, prisma/schema.sqlite.prisma (new, sandbox-only).
+
+---
+Task ID: 3
+Agent: main (orchestrator)
+Task: Product URLs + SEO; admin account buifkhanh57@gmail.com; Vercel/SQLite hygiene; push to GitHub
+
+Work Log:
+- Git hygiene BEFORE pushing: dropped unpushed junk commit 9d14d06 (contained db/custom.db binary — would have leaked local data to GitHub); restored db/, examples/, mini-services/ as untracked local files; .gitignore += /db/*.db, /examples/, /mini-services/, /tool-results/, /upload/, /download/
+- Extracted SPA shell from page.tsx → src/components/avh/spa-shell.tsx (AvhShell, accepts initialSlug). page.tsx = thin wrapper
+- NEW ROUTE src/app/san-pham/[slug]/page.tsx: generateMetadata (title/description/canonical/OG/Twitter vi_VN), server-rendered JSON-LD Product schema (VND price=min variant/basePrice, InStock/OutOfStock, aggregateRating from denormalized counters), notFound() → real HTTP 404 via route-level not-found.tsx; dynamic=force-dynamic
+- Deep-link UX: AvhShell forces ui-store view=product+slug when initialSlug present (beats stale persisted localStorage view)
+- src/app/sitemap.ts: dynamic (home + all published products), DB-failure tolerant. src/app/robots.ts: dynamic + Sitemap line (removed public/robots.txt). layout.tsx: metadataBase
+- product-view.tsx share handlers now copy/share canonical /san-pham/<slug> URL (shareTargetUrl helper)
+- Admin account: setup-admins.ts NEW_ADMINS += buifkhanh57@gmail.com w/ exact password AVHSTORE@123 (per-entry password override field); exported ensureAdminAccountsExist() (create-if-missing/promote-only — NEVER overwrites passwords) and hooked into GET+POST /api/seed so admins self-provision after Vercel deploy on the Supabase Postgres
+- .env.example: NEXT_PUBLIC_SITE_URL documented; Supabase pooled-connection note for DATABASE_URL. DEPLOY.md: new sections "Tài khoản admin sau deploy (TỰ ĐỘNG)" + "URL sản phẩm + SEO"
+- Incident+recovery: byte-appended SQLite file during a write test corrupted it ("disk image malformed") → restored pristine copy from /tmp backup made before history rewrite; PRAGMA integrity_check=ok; dev server restart required afterwards because Prisma kept a stale fd to the deleted inode ("readonly database")
+- Sandbox note: platform reaps background dev-server processes between tool calls → all functional verification executed inside single bash sessions
+
+Stage Summary:
+- Verified: lint 0 errors; tsc --noEmit clean; curl SSR checks (title/canonical/OG/JSON-LD/sitemap/robots/404-vs-200); agent-browser e2e deep-link renders full storefront UI at /san-pham/ban-lam-viec-go-oak-avh-od; login API returns ADMIN session for buifkhanh57@gmail.com with AVHSTORE@123; ensureAdminAccountsExist created 5 admins locally (adminsProvisioned:5)
+- Production build NOT runnable in sandbox per platform rule (bun run build forbidden); tsc+lint+dev-runtime are the quality gates here — Vercel build will run prisma generate + next build on Postgres env

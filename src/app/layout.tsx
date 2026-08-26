@@ -6,6 +6,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/avh/theme-provider";
 import { AuthProvider } from "@/components/avh/auth-provider";
 import { QueryProvider } from "@/components/avh/query-provider";
+import { siteUrl } from "@/lib/site-url";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +19,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // metadataBase: lets every relative OG/canonical URL resolve to an
+  // absolute one without per-page duplication (Next best practice).
+  metadataBase: (() => {
+    try {
+      return new URL(siteUrl())
+    } catch {
+      return new URL('http://localhost:3000')
+    }
+  })(),
   title: "Nội Thất AVH — Nội thất & Trang trí nhà cửa",
   description:
     "Nội Thất AVH — Cửa hàng nội thất trực tuyến: sofa, bàn ghế, giường, tủ, đèn trang trí và phụ kiện. Thiết kế hiện đại, bảo hành rõ ràng, giao hàng toàn quốc.",

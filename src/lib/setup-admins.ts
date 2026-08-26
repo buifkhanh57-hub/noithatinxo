@@ -1,17 +1,77 @@
-// User management: delete the demo admin + create the 3 real admin accounts
+// User management: delete the demo admin + create the real admin accounts
 // with hashed passwords. Run once via `bun run src/lib/setup-admins.ts` or
 // hit POST /api/setup-admins.
+//
+// AFTER DEPLOY (Vercel + Postgres) you do NOT need to call that endpoint:
+// `/api/seed` (called on every storefront load) runs ensureAdminAccountsExist()
+// which CREATE-IF-MISSING every account below — never overwriting passwords.
 
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 
-const NEW_ADMINS = [
+interface AdminSeed {
+  email: string
+  name: string
+  // Per-account password override; falls back to ADMIN_PASSWORD.
+  password?: string
+}
+
+const NEW_ADMINS: AdminSeed[] = [
+  // Owner account requested explicitly by the merchant (exact password as typed).
+  { email: 'buifkhanh57@gmail.com', name: 'Bùi Khánh (Chủ shop)', password: 'AVHSTORE@123' },
   { email: 'buikhanh57@gmail.com', name: 'Bùi Khánh (Admin)' },
   { email: 'buithimai11021987@gmail.com', name: 'Bùi Thị Mai (Admin)' },
   { email: 'duongyenavh@gmail.com', name: 'Dương Yến (Admin)' },
   { email: 'nguyenanh2406@gmail.com', name: 'Nguyễn Anh (Admin)' },
 ]
 const ADMIN_PASSWORD = 'avhstore@123'
+
+function passwordFor(a: AdminSeed): string {
+  return a.password ?? ADMIN_PASSWORD
+}
+
+/**
+ * Idempotent, non-destructive: creates each admin ONLY if the email is
+ * missing. Existing users keep their role/password — safe to run on every
+ * cold start in production.
+ */
+export async function ensureAdminAccountsExist(): Promise<string[]> {
+  const log: string[] = []
+  for (const a of NEW_ADMINS) {
+    const email = a.email.toLowerCase()
+    try {
+      const existing = await db.user.findUnique({
+        where: { email },
+        select: { id: true, role: true },
+      })
+      if (!existing) {
+        await db.user.create({
+          data: {
+            email,
+            name: a.name,
+            role: 'ADMIN',
+            passwordHash: hashPassword(passwordFor(a)),
+            authProviders: 'email',
+            memberTier: 'PLATINUM',
+          },
+        })
+        log.push(`✓ created admin ${email}`)
+      } else if (existing.role !== 'ADMIN') {
+        // Email exists but isn't staff yet → promote WITHOUT touching their
+        // password (they may have changed it / logged in via Google).
+        await db.user.update({
+          where: { id: existing.id },
+          data: { role: 'ADMIN' },
+        })
+        log.push(`✓ promoted existing user ${email} → ADMIN`)
+      }
+    } catch (err) {
+      console.error(`[ensure-admins] ${email}`, err)
+      log.push(`✗ failed for ${email}`)
+    }
+  }
+  return log
+}
 
 export async function setupAdmins() {
   const result: string[] = []
@@ -27,10 +87,10 @@ export async function setupAdmins() {
     result.push('• admin@avh.vn không tồn tại (đã xoá trước đó)')
   }
 
-  // 2) Create/upgrade the 3 new admins with hashed passwords
+  // 2) Create/upgrade the admin accounts with hashed passwords
   for (const a of NEW_ADMINS) {
     const existing = await db.user.findUnique({ where: { email: a.email.toLowerCase() } })
-    const hash = hashPassword(ADMIN_PASSWORD)
+    const hash = hashPassword(passwordFor(a))
     if (existing) {
       // upgrade: set role ADMIN + hashed password
       await db.user.update({
