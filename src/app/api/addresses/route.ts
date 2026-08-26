@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getAuthFromHeader } from '@/lib/auth-token'
+import { requireUser } from '@/lib/auth-token'
 
 /**
  * GET /api/addresses?userId=... — list addresses for a user (default first).
@@ -9,9 +9,9 @@ import { getAuthFromHeader } from '@/lib/auth-token'
  * Auth: customer must be logged in (Bearer token from auth-store).
  */
 export async function GET(req: NextRequest) {
-  const auth = await getAuthFromHeader(req.headers.get('authorization'))
-  if (!auth) {
-    return NextResponse.json({ success: false, error: 'Chưa đăng nhập' }, { status: 401 })
+  const auth = await requireUser(req.headers.get('authorization'))
+  if ('error' in auth) {
+    return NextResponse.json({ success: false, error: auth.error, code: auth.code }, { status: auth.status })
   }
   const userId = auth.userId
   const addresses = await db.address.findMany({
@@ -22,9 +22,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromHeader(req.headers.get('authorization'))
-  if (!auth) {
-    return NextResponse.json({ success: false, error: 'Chưa đăng nhập' }, { status: 401 })
+  const auth = await requireUser(req.headers.get('authorization'))
+  if ('error' in auth) {
+    return NextResponse.json({ success: false, error: auth.error, code: auth.code }, { status: auth.status })
   }
   const userId = auth.userId
   const body = await req.json().catch(() => null)

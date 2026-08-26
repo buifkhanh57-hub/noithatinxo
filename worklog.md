@@ -295,3 +295,46 @@ Stage Summary:
 - Admin → Cài đặt → "Thanh toán & Ngân hàng" → "Thêm tài khoản ngân hàng" now has a bank dropdown (27 banks) instead of free text.
 - When customer picks "Chuyển khoản ngân hàng" at checkout, the system auto-generates a VietQR QR code containing: bank, account number, EXACT ORDER AMOUNT, order code as transfer note, holder name. Customer scans with any VN banking app → pays directly → money goes to merchant's linked account. No manual amount entry needed.
 - Server is unstable (4GB RAM, Turbopack OOM) — restart on demand.
+
+---
+Task ID: 9
+Agent: main (upload-token fix)
+Task: Sửa triệt để lỗi upload ảnh "Chưa đăng nhập / Token expired" — tìm nguyên nhân gốc trong code, thêm refresh-token flow, phân loại lỗi.
+
+Work Log:
+- Root cause #1 (CRITICAL): 3 call site gọi fetch('/api/upload') KHÔNG đính kèm header Authorization (media-uploader.tsx:62, admin-view.tsx:2352/2704) trong khi /api/upload luôn bắt buộc Bearer → mọi upload luôn 401 dù đang đăng nhập đúng.
+- Root cause #2: chỉ có 1 JWT 7d trong localStorage, không có refresh token; hết hạn là kẹt hoàn toàn.
+- Root cause #3: page.tsx bootstrap đọc /api/auth/me?token= nhưng route cũ chỉ đọc email → luôn trả null; UI "giả vờ" đăng nhập trong khi server từ chối token.
+- Root cause #4: mọi lỗi auth gộp chung 1 message; không phân biệt NO_TOKEN/TOKEN_EXPIRED/FORBIDDEN/file/storage/network.
+- Root cause #5: cookie avh_auth_token của Google callback là httpOnly nhưng client đọc bằng document.cookie → luôn undefined (bug ngầm).
+
+Backend fixes:
+- src/lib/auth-token.ts: 2-token model — ACCESS 30m (typ:'access') + REFRESH 30d (typ:'refresh', chỉ nằm httpOnly cookie 'avh_refresh'); verifyAuthTokenDetailed trả reason 'expired'|'invalid'; legacy token (không typ) vẫn verify như access; requireAdmin/requireUser trả {error,status,code: NO_TOKEN|TOKEN_EXPIRED|TOKEN_INVALID|FORBIDDEN}; helpers set/clearRefreshCookie.
+- NEW /api/auth/refresh: verify refresh cookie → re-read user từ DB (role mới) → sign cặp token mới + ROTATE cookie; mã lỗi NO_REFRESH_TOKEN/REFRESH_EXPIRED/REFRESH_INVALID.
+- login/register/oauth-login/google-callback: set refresh cookie (login + register + oauth + google). logout: clear cookie. Google callback đổi avh_auth_token sang httpOnly:false (client đọc được — sửa bug #5).
+- /api/auth/me: xác thực bằng Bearer hoặc ?token=, re-read DB, trả mã lỗi chính xác; bỏ tra theo email (không an toàn).
+- /api/upload: mã lỗi NO_TOKEN / TOKEN_EXPIRED / TOKEN_INVALID / FORBIDDEN / NO_FILES / TOO_MANY_FILES / INVALID_PAYLOAD / UNSUPPORTED_TYPE / FILE_TOO_LARGE / STORAGE_ERROR; bắt lỗi formData.
+- admin-guard: forward `code` cho toàn bộ admin API. addresses (+[id]), orders, profile: chuyển sang requireUser.
+
+Frontend fixes:
+- NEW src/lib/auth-client.ts: performSessionRefresh() single-flight — N request 401 song song chỉ tạo 1 call refresh; refresh OK → cập nhật token mới vào store; refresh 401 → xoá identity cũ (không còn "giả vờ đăng nhập").
+- src/lib/api.ts: tự refresh + RETRY ĐÚNG 1 LẦN khi 401 có code refreshable (loại trừ endpoint auth); ApiError mới có kind: auth_not_logged_in | auth_session_expired | forbidden | validation | server | network; fetch throw → network error rõ ràng.
+- NEW src/lib/upload-client.ts: uploadFilesToApi/uploadSingleImage — luôn gắn Bearer; validate ext/size client-side TRƯỚC khi gửi (mirror rule server); refresh + retry 1 lần khi 401; map per-file error kinds (kể cả UNSUPPORTED_TYPE/FILE_TOO_LARGE/STORAGE_ERROR từ body.failed[]); promptReLogin() CHỈ khi not_logged_in/session_expired.
+- media-uploader.tsx: dùng uploadFilesToApi từng file tuần tự, local accumulator chống stale-closure; toast lỗi theo từng loại; session chết → toast + TỰ MỞ dialog đăng nhập.
+- admin-view.tsx: 2 chỗ upload (logo settings + ảnh danh mục) chuyển sang uploadSingleImage; lỗi auth → promptReLogin.
+- page.tsx bootstrap: thu token từ store → google cookie → nextauth session; VERIFY qua /api/auth/me (api.get tự refresh 1 lần); thành công → set user fresh từ DB; auth fail thật → clear + toast "Phiên đăng nhập đã hết hạn" 1 lần; lỗi network KHÔNG đăng xuất người dùng.
+
+Testing (Agent Browser, tất cả PASS):
+1. Login admin@avh.vn → upload logo + MediaUploader → 200, preview hiện.
+2. Reload page → session còn → upload tiếp → 200.
+3. Chọn 3 file cùng lúc → 3 POST tuần tự, cả 3 200, "4/10 file".
+4. Token hết hạn (mint tay bằng secret thật) + refresh cookie còn hạn → upload: 401 → /api/auth/refresh 200 → retry 200; localStorage tự có token mới (exp ~30m, typ=access); KHÔNG yêu cầu đăng nhập lại.
+5. Logout (xoá cookie) + token hết hạn → upload → toast ĐÚNG "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục tải ảnh." + dialog Đăng nhập TỰ MỞ; user được clear; đăng nhập lại xong → upload chạy ngay (2/10 file).
+6. Token CUSTOMER (khach@avh.vn) → 403 FORBIDDEN "Bạn không có quyền tải file lên (chỉ quản trị viên/staff)" — KHÔNG nhầm với hết hạn.
+7. File 9MB → toast "quá lớn (9.0MB, tối đa 8MB)"; file .pdf → "Định dạng pdf không được hỗ trợ"; cả hai bị chặn client-side KHÔNG phát sinh request; media không đổi.
+8. Server down thật (kill next-server khi upload) → toast "Không thể kết nối máy chủ…" (network kind); server sống lại → upload 200 bình thường.
+- Kèm: responsive mobile 390px + desktop 1440px render chuẩn; footer stick đúng; không hydration/console error; DB/schema/storage không bị xoá hay reset; schema production (postgres) giữ nguyên, chỉ thêm prisma/schema.sqlite.prisma cho môi trường sandbox.
+
+Stage Summary:
+- Upload giờ LUÔN mang token; access hết hạn → tự refresh + retry đúng 1 lần; chết thật → thông báo đúng + mở login; phân biệt đủ 8+ loại lỗi; không retry vô hạn; không bỏ auth để "cho qua".
+- Files changed: src/lib/{auth-token,api,auth-client,upload-client,middleware/admin-guard}.ts, src/app/api/auth/{login,register,logout,me,oauth-login,refresh(new),google/callback}/route.ts, src/app/api/upload/route.ts, src/app/api/{orders,addresses,addresses/[id]}/route.ts, src/components/avh/{media-uploader,views/admin-view}.tsx, src/app/page.tsx, prisma/schema.sqlite.prisma (new, sandbox-only).

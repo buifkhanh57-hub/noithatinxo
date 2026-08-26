@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { generateOrderCode, timelineEntry } from '@/lib/format'
 import { FIXED_BANK_ACCOUNT } from '@/lib/fixed-bank-account'
-import { getAuthFromHeader } from '@/lib/auth-token'
+import { requireUser } from '@/lib/auth-token'
 import { applyVoucherServerSide } from '@/lib/voucher'
 import { shippingFeeFor } from '@/lib/shipping'
 import { computeRiskFlags } from '@/lib/risk'
@@ -24,10 +24,10 @@ export async function POST(req: NextRequest) {
   // before they even reach this endpoint, but we re-check here because
   // someone could call the API directly with curl.
   const authHeader = req.headers.get('authorization')
-  const auth = await getAuthFromHeader(authHeader)
-  if (!auth) {
+  const auth = await requireUser(authHeader)
+  if ('error' in auth) {
     return NextResponse.json(
-      { success: false, error: 'Vui lòng đăng nhập để đặt hàng. Khách vãng lai không thể tạo đơn.' },
+      { success: false, error: 'Vui lòng đăng nhập để đặt hàng. Khách vãng lai không thể tạo đơn.', code: auth.code },
       { status: 401 }
     )
   }

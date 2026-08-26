@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { verifyPassword } from '@/lib/password'
-import { signAuthToken } from '@/lib/auth-token'
+import { signAuthToken, signRefreshToken, setRefreshCookie } from '@/lib/auth-token'
 
 /**
  * POST /api/auth/login { email, password }
@@ -22,7 +22,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Email hoặc mật khẩu không đúng' }, { status: 401 })
   }
   const token = await signAuthToken({ userId: user.id, email: user.email, role: user.role })
-  return NextResponse.json({
+  const refreshToken = await signRefreshToken({ userId: user.id, email: user.email, role: user.role })
+  // httpOnly refresh cookie — enables silent session renewal when the
+  // short-lived access token expires (see /api/auth/refresh).
+  const res = NextResponse.json({
     success: true,
     data: {
       id: user.id,
@@ -35,4 +38,6 @@ export async function POST(req: NextRequest) {
       token,
     },
   })
+  setRefreshCookie(res, refreshToken)
+  return res
 }

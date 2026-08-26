@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
-import { signAuthToken } from '@/lib/auth-token'
+import { signAuthToken, signRefreshToken, setRefreshCookie } from '@/lib/auth-token'
 import { logInfo } from '@/lib/system-log'
 import { randomBytes } from 'crypto'
 
@@ -107,16 +107,19 @@ export async function GET(req: NextRequest) {
 
   // Sign JWT token
   const token = await signAuthToken({ userId: user.id, email: user.email, role: user.role })
+  const refreshToken = await signRefreshToken({ userId: user.id, email: user.email, role: user.role })
 
-  // Redirect home with token in cookie (httpOnly, secure)
+  // Redirect home with token in cookie (readable by client bootstrap), plus an
+  // httpOnly refresh cookie so the session can renew itself silently.
   const res = NextResponse.redirect(new URL('/?google_login=success', req.nextUrl.origin))
   res.cookies.set('avh_auth_token', token, {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60, // 7 days
     path: '/',
   })
+  setRefreshCookie(res, refreshToken)
 
   // Also clear the oauth_state cookie
   res.cookies.delete('oauth_state')

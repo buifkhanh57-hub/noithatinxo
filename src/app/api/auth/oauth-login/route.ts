@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { signAuthToken } from '@/lib/auth-token'
+import { signAuthToken, signRefreshToken, setRefreshCookie } from '@/lib/auth-token'
 import { hashPassword } from '@/lib/password'
 import { randomBytes } from 'crypto'
 
@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
   }
 
   const token = await signAuthToken({ userId: user.id, email: user.email, role: user.role })
-  return NextResponse.json({
+  const refreshToken = await signRefreshToken({ userId: user.id, email: user.email, role: user.role })
+  const res = NextResponse.json({
     success: true,
     data: {
       id: user.id,
@@ -76,4 +77,6 @@ export async function POST(req: NextRequest) {
       token,
     },
   })
+  setRefreshCookie(res, refreshToken)
+  return res
 }

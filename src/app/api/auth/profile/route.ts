@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getAuthFromHeader } from '@/lib/auth-token'
+import { requireUser } from '@/lib/auth-token'
 import { logInfo } from '@/lib/system-log'
 
 /**
@@ -18,9 +18,9 @@ import { logInfo } from '@/lib/system-log'
  * Returns the updated user object (without passwordHash).
  */
 export async function PUT(req: NextRequest) {
-  const auth = await getAuthFromHeader(req.headers.get('authorization'))
-  if (!auth) {
-    return NextResponse.json({ success: false, error: 'Chưa đăng nhập' }, { status: 401 })
+  const auth = await requireUser(req.headers.get('authorization'))
+  if ('error' in auth) {
+    return NextResponse.json({ success: false, error: auth.error, code: auth.code }, { status: auth.status })
   }
 
   const body = await req.json().catch(() => null)

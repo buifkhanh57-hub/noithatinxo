@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getAuthFromHeader } from '@/lib/auth-token'
+import { requireUser } from '@/lib/auth-token'
 
 /**
  * PATCH /api/addresses/[id] — update an address (rename, fix typo, set default).
@@ -13,9 +13,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getAuthFromHeader(req.headers.get('authorization'))
-  if (!auth) {
-    return NextResponse.json({ success: false, error: 'Chưa đăng nhập' }, { status: 401 })
+  const auth = await requireUser(req.headers.get('authorization'))
+  if ('error' in auth) {
+    return NextResponse.json({ success: false, error: auth.error, code: auth.code }, { status: auth.status })
   }
   const { id } = await params
   const body = await req.json().catch(() => null)
@@ -55,9 +55,9 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getAuthFromHeader(req.headers.get('authorization'))
-  if (!auth) {
-    return NextResponse.json({ success: false, error: 'Chưa đăng nhập' }, { status: 401 })
+  const auth = await requireUser(req.headers.get('authorization'))
+  if ('error' in auth) {
+    return NextResponse.json({ success: false, error: auth.error, code: auth.code }, { status: auth.status })
   }
   const { id } = await params
 

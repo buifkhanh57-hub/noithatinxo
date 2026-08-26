@@ -9,6 +9,7 @@ import { ChatWidget } from '@/components/avh/chat-widget'
 import { CompareTray } from '@/components/avh/compare-tray'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
+import { api, ApiError } from '@/lib/api'
 import { useSettingsStore } from '@/lib/stores/settings-store'
 import { ArrowUp } from 'lucide-react'
 
@@ -160,42 +161,49 @@ export default function Home() {
     return () => clearTimeout(timeout)
   }, [setSettings])
 
-  // Restore user from localStorage or Google OAuth cookie on mount
+  // Restore + VERIFY the session on mount.
+  //
+  // The old bootstrap had three desynced sources (cookie, NextAuth session,
+  // localStorage) and could show "logged in" while the server considered the
+  // token dead — surfacing later as confusing 401s on upload. Now:
+  //   1. Collect candidate tokens (persisted store → Google callback cookie
+  //      → NextAuth session for Apple users).
+  //   2. Validate against /api/auth/me with the Bearer header. The shared
+  //      `api` layer auto-refreshes ONCE if the access token has expired.
+  //   3. On success → set fresh user data (role/points re-read from DB).
+  //   4. On real session death → clear stale identity + precise toast once.
   useEffect(() => {
-    try {
-      // Check for Google OAuth callback token (set by /api/auth/google/callback)
-      const cookieToken = document.cookie
-        .split('; ')
-        .find((c) => c.startsWith('avh_auth_token='))
-        ?.split('=')[1]
-      if (cookieToken) {
-        // Verify the token via our API and set the user
-        fetch('/api/auth/me?token=' + cookieToken)
-          .then((r) => r.json())
-          .then((b) => {
-            if (b?.success && b.data) {
-              setUser({ ...b.data, token: cookieToken })
-            }
-          })
-          .catch(() => {})
-      }
+    let cancelled = false
 
-      // Fetch NextAuth session (covers Google/Apple OAuth users).
-      // Since the jwt/session callbacks now sign an app-level authToken,
-      // this pulls a fresh token into the auth store on every page load.
-      fetch('/api/auth/session', { credentials: 'include' })
-        .then((r) => r.json())
-        .then((session) => {
-          if (session?.user) {
-            const u = session.user as {
-              id?: string
-              name?: string | null
-              email?: string | null
-              role?: string
-              token?: string
-              image?: string | null
-            }
-            if (u.token) {
+    // Session-expiry notice shown at most once per page load.
+    let expiryToasted = false
+    const toastExpiryOnce = () => {
+      if (expiryToasted || cancelled) return
+      expiryToasted = true
+      import('sonner').then(({ toast }) =>
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', { duration: 6000 })
+      )
+    }
+
+    ;(async () => {
+      try {
+        const st = useAuthStore.getState()
+        // Collect token candidates in priority order.
+        const cookieToken = document.cookie
+          .split('; ')
+          .find((c) => c.startsWith('avh_auth_token='))
+          ?.split('=')[1]
+
+        let token = st.user?.token || cookieToken || null
+
+        // NextAuth session (covers Apple OAuth users) as a last-resort source.
+        try {
+          if (!token) {
+            const r = await fetch('/api/auth/session', { credentials: 'include' })
+            const session = await r.json().catch(() => null)
+            const u = session?.user as { id?: string; name?: string | null; email?: string | null; role?: string; token?: string; image?: string | null } | undefined
+            if (u?.token) {
+              token = u.token
               setUser({
                 id: u.id || '',
                 name: u.name || '',
@@ -206,25 +214,50 @@ export default function Home() {
               })
             }
           }
-        })
-        .catch(() => {})
+        } catch { /* non-blocking */ }
 
-      // Also check localStorage (for email/password login)
-      // Only restore if we don't already have a user (avoids overwriting
-      // token from NextAuth session or cookie above).
-      const existingUser = useAuthStore.getState?.()?.user
-      if (!existingUser) {
-        const raw = localStorage.getItem('avh-auth')
-        if (raw) {
-          const parsed = JSON.parse(raw)
-          if (parsed?.state?.user?.token) {
-            setUser(parsed.state.user)
+        if (!token) {
+          st.setLoading(false)
+          return // plain guest — nothing to verify
+        }
+
+        // Verify with the server (api.get attaches Bearer and auto-refreshes once).
+        try {
+          const data = await api.get<{
+            id: string; name: string | null; email: string; role: string;
+            avatarUrl?: string | null; loyaltyPoints?: number; memberTier?: string
+          }>('/api/auth/me')
+          if (!cancelled && data?.id) {
+            setUser({
+              id: data.id,
+              name: data.name ?? '',
+              email: data.email,
+              role: data.role as 'CUSTOMER' | 'ADMIN' | 'STAFF',
+              avatarUrl: data.avatarUrl ?? undefined,
+              loyaltyPoints: data.loyaltyPoints,
+              memberTier: data.memberTier,
+              // keep the SAME working token (or refreshed one now in store)
+              token: useAuthStore.getState().user?.token || token,
+            })
+          }
+        } catch (err) {
+          if (!cancelled) {
+            // Only clear the stale identity on REAL auth failures.
+            // Network/server hiccups must NOT log a valid user out.
+            if (err instanceof ApiError && (err.kind === 'auth_session_expired' || err.kind === 'auth_not_logged_in')) {
+              useAuthStore.getState().setUser(null)
+              toastExpiryOnce()
+            }
           }
         }
+      } catch {
+        // ignore — never block first paint on session restore
+      } finally {
+        if (!cancelled) useAuthStore.getState().setLoading(false)
       }
-    } catch {
-      // ignore
-    }
+    })()
+
+    return () => { cancelled = true }
   }, [setUser])
 
   const fallback = <ViewFallback label="Đang tải…" />

@@ -16,8 +16,11 @@ export async function adminGuard(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   const result = await requireAdmin(authHeader)
   if ('error' in result) {
+    // Pass the machine-readable `code` (NO_TOKEN / TOKEN_EXPIRED / TOKEN_INVALID /
+    // FORBIDDEN) through so the client can distinguish "not logged in" from
+    // "session expired" from "no permission" instead of lumping them together.
     return NextResponse.json(
-      { success: false, error: result.error },
+      { success: false, error: result.error, code: result.code },
       { status: result.status }
     )
   }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { uploadFilesToApi, promptReLogin } from '@/lib/upload-client'
 
 export interface MediaItem {
   url: string
@@ -54,44 +55,49 @@ export function MediaUploader({ media, onChange, max = 10 }: Props) {
       setUploading(true)
       let okCount = 0
       const errors: string[] = []
-      // Sequential uploads to avoid hammering the server.
+      let needsReLogin = false
+      // Local accumulator seeded from the current prop — appends NEVER rely
+      // on stale closures or refs across async loop iterations.
+      let acc = [...media]
+      // Sequential uploads to avoid hammering the server. Each file goes
+      // through the shared upload client which attaches the Bearer token,
+      // refreshes the session once if needed and retries ONCE — and maps
+      // every failure to a PRECISE kind (file too large ≠ hết hạn token).
       for (const file of toUpload) {
         try {
-          const fd = new FormData()
-          fd.append('files', file)
-          const res = await fetch('/api/upload', { method: 'POST', body: fd })
-          const body = await res.json().catch(() => null)
-          if (!res.ok || !body?.success) {
-            throw new Error(body?.error || `HTTP ${res.status}`)
+          const outcome = await uploadFilesToApi([file])
+          if (outcome.uploaded.length) {
+            acc = [
+              ...acc,
+              ...outcome.uploaded.map((u) => ({
+                url: u.url,
+                type: u.type,
+                name: u.name,
+                size: u.size,
+              })),
+            ]
+            onChange(acc)
+            okCount += outcome.uploaded.length
           }
-          const uploaded: MediaItem[] = body.data.uploaded
-          // Append the freshly uploaded items to the parent state via the
-          // ref (avoids stale-closure since the loop is async).
-          onChange([
-            ...useMediaRef.current,
-            ...uploaded.map((u: MediaItem) => ({
-              url: u.url,
-              type: u.type,
-              name: u.name,
-              size: u.size,
-            })),
-          ])
-          okCount += uploaded.length
-        } catch (err) {
-          errors.push(`${file.name}: ${err instanceof Error ? err.message : 'lỗi'}`)
+          for (const e of outcome.errors) {
+            errors.push(`${e.name}: ${e.message}`)
+            if (e.kind === 'not_logged_in' || e.kind === 'session_expired') needsReLogin = true
+          }
+        } catch {
+          errors.push(`${file.name}: không thể tải lên`)
         }
       }
       setUploading(false)
       if (okCount) toast.success(`Đã tải lên ${okCount} file`)
-      if (errors.length) toast.error(errors.join('; '))
+      if (errors.length) {
+        toast.error(errors.join('; '), { duration: 7000 })
+      }
+      // Session thực sự đã chết → mở dialog đăng nhập để user đăng nhập lại
+      // rồi tiếp tục upload; KHÔNG bắt đăng nhập lại nếu lỗi là do file/server.
+      if (needsReLogin) promptReLogin()
     },
     [media, max, onChange]
   )
-
-  // Keep a ref to the latest media so the async upload loop can append to it
-  // without stale-closure bugs.
-  const useMediaRef = useRef(media)
-  useMediaRef.current = media
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()

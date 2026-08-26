@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '@/lib/api'
+import { uploadSingleImage, promptReLogin } from '@/lib/upload-client'
 import { useAuthStore, AuthUser } from '@/lib/stores/auth-store'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { useSettingsStore } from '@/lib/stores/settings-store'
@@ -2346,19 +2347,18 @@ function SettingField({
               onChange={async (e) => {
                 const f = e.target.files?.[0]
                 if (!f) return
-                const fd = new FormData()
-                fd.append('files', f)
                 try {
-                  const res = await fetch('/api/upload', { method: 'POST', body: fd })
-                  const b = await res.json()
-                  if (b?.success && b.data.uploaded[0]) {
-                    onChange(b.data.uploaded[0].url)
-                    toast.success('Đã upload logo')
-                  } else {
-                    toast.error(b?.error || 'Upload thất bại')
+                  // Shared upload client: attaches Bearer token, refreshes
+                  // session once on 401 and reports PRECISE error kinds.
+                  const url = await uploadSingleImage(f)
+                  onChange(url)
+                  toast.success('Đã upload logo')
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : 'Upload thất bại')
+                  if (err && typeof err === 'object' && 'kind' in err) {
+                    const kind = (err as { kind?: string }).kind
+                    if (kind === 'not_logged_in' || kind === 'session_expired') promptReLogin()
                   }
-                } catch {
-                  toast.error('Upload thất bại')
                 }
                 e.target.value = ''
               }}
@@ -2699,15 +2699,17 @@ function CategoriesTab() {
     input.type = 'file'; input.accept = 'image/*'
     input.onchange = async () => {
       const f = input.files?.[0]; if (!f) return
-      const fd = new FormData(); fd.append('files', f)
       try {
-        const res = await fetch('/api/upload', { method: 'POST', body: fd })
-        const b = await res.json()
-        if (b?.success && b.data.uploaded[0]) {
-          setImageUrl(b.data.uploaded[0].url)
-          toast.success('Đã upload ảnh danh mục')
-        } else { toast.error(b?.error || 'Upload thất bại') }
-      } catch { toast.error('Upload thất bại') }
+        const url = await uploadSingleImage(f)
+        setImageUrl(url)
+        toast.success('Đã upload ảnh danh mục')
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Upload thất bại')
+        if (err && typeof err === 'object' && 'kind' in err) {
+          const kind = (err as { kind?: string }).kind
+          if (kind === 'not_logged_in' || kind === 'session_expired') promptReLogin()
+        }
+      }
     }
     input.click()
   }
