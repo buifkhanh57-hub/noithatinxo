@@ -1,7 +1,7 @@
 'use client'
 
-import { AvhShell } from '@/components/avh/spa-shell'
+import { AppShellForRoute } from '@/components/avh/route-mount'
 
 export default function Home() {
-  return <AvhShell />
+  return <AppShellForRoute view="home" />
 }

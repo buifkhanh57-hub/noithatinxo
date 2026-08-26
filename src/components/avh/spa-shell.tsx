@@ -2,15 +2,23 @@
 
 /**
  * AvhShell — the entire single-page-application UI (header, active view,
- * footer, drawers, chat widget). Shared by:
+ * footer, drawers, chat widget). Shared by every real route:
  *
- *   - `/`                    → normal browsing (restores last view from store)
- *   - `/san-pham/<slug>`     → deep-linked product page (SEO landing)
+ *   /            → home        /gio-hang   → cart      /blog/<slug> → blog detail
+ *   /san-pham    → shop        /dat-hang   → checkout  … see src/lib/view-routes.ts
+ *   /san-pham/x  → product     /thanh-toan → payment
  *
- * The SEO metadata + JSON-LD for /san-pham/<slug> are rendered server-side
- * in src/app/san-pham/[slug]/page.tsx; this shell then takes over so the
- * customer can keep shopping inside the same interactive app.
+ * The server `page.tsx` for each route renders its own SEO metadata (title,
+ * canonical, OG, JSON-LD) and passes the matching view here; the shell then
+ * mounts it silently and takes over as a normal SPA. All in-app navigation
+ * keeps working instantly AND syncs the URL via history.pushState, while a
+ * popstate listener keeps back/forward correct.
  */
+
+export interface ShellRoute {
+  view: string
+  params?: Record<string, string | undefined>
+}
 
 import { useEffect, useRef, lazy, Suspense, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
@@ -20,6 +28,7 @@ import { CartDrawer } from '@/components/avh/cart-drawer'
 import { ChatWidget } from '@/components/avh/chat-widget'
 import { CompareTray } from '@/components/avh/compare-tray'
 import { useUIStore } from '@/lib/stores/ui-store'
+import { routeFromLocation } from '@/lib/view-routes'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { api, ApiError } from '@/lib/api'
 import { useSettingsStore } from '@/lib/stores/settings-store'
@@ -139,7 +148,7 @@ function useBodyScrollLock() {
   }, [])
 }
 
-export function AvhShell({ initialSlug }: { initialSlug?: string }) {
+export function AvhShell({ route }: { route?: ShellRoute }) {
   const view = useUIStore((s) => s.view)
   const setUser = useAuthStore((s) => s.setUser)
   const setSettings = useSettingsStore((s) => s.set)
@@ -148,17 +157,40 @@ export function AvhShell({ initialSlug }: { initialSlug?: string }) {
   // prevents the "page slides behind cart drawer" bug on mobile (iOS Safari).
   useBodyScrollLock()
 
-  // Deep-link support: when this shell is mounted under /san-pham/<slug>
-  // we FORCE the product view regardless of whatever view was persisted in
-  // localStorage — a customer opening a shared link must always land on that
-  // exact product, not on their previous session's page (e.g. admin panel).
+  // Route mount: when this shell is loaded under ANY real url we force the
+  // corresponding view — beats whatever stale page was persisted in
+  // localStorage. Guest on /gio-hang must see the cart, not their old admin
+  // session's screen.
+  //
+  // Static routes (/san-pham) can't forward ?query= from the server page, so
+  // when no explicit params arrive we read them from window.location at
+  // mount time → refresh preserves filters like /san-pham?cat=phong-khach.
+  const initial = useRef<ShellRoute | undefined>(route)
   useEffect(() => {
-    if (!initialSlug) return
+    if (!initial.current) return
     const st = useUIStore.getState()
-    if (st.view !== 'product' || st.params?.slug !== initialSlug) {
-      st.setView('product', { slug: initialSlug })
+    let params = initial.current.params ?? {}
+    if (!initial.current.params) {
+      try {
+        params = routeFromLocation().params
+      } catch { /* keep {} */ }
     }
-  }, [initialSlug])
+    const sameView =
+      st.view === initial.current.view &&
+      JSON.stringify(st.params ?? {}) === JSON.stringify(params)
+    if (!sameView) st.setViewSilent(initial.current.view as never, params)
+  }, [])
+
+  // Browser back/forward: re-sync the view from the URL. Silent — the URL is
+  // already the source of truth here; pushing again would double entries.
+  useEffect(() => {
+    const onPop = () => {
+      const r = routeFromLocation()
+      useUIStore.getState().setViewSilent(r.view as never, r.params)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   // One-time seed on first load (idempotent on backend). We DO NOT block the
   // UI on this fetch — the views use their own TanStack Query for data, so

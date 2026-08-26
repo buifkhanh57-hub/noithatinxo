@@ -180,7 +180,7 @@ export default async function ProductSeoPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: buildProductJsonLd(product) }}
       />
-      <AvhShell initialSlug={slug} />
+      <AvhShell route={{ view: 'product', params: { slug } }} />
     </>
   )
 }

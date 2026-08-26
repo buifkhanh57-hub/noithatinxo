@@ -377,3 +377,24 @@ Work Log:
 Stage Summary:
 - GitHub repo up to date at e6ea602 on main
 - ChunkLoadError resolved by cache clear; runtime interactive flows (login→admin→stats) verified in real browser
+
+---
+Task ID: 5
+Agent: main (orchestrator)
+Task: Real URLs for every storefront page (/san-pham, /gio-hang, /blog/...) with SPA-speed navigation + per-page SEO
+
+Work Log:
+- Surveyed params usage across all views (shop: cat/q/sort/flashSale/isNew; product+blog-detail: slug; payment/tracking: code; order-success: orderCode)
+- NEW src/lib/view-routes.ts — single source of truth view⇄path map (14 views): home/, shop/san-pham(+query), product/san-pham/[slug], cart/gio-hang, checkout/dat-hang, payment/thanh-toan?code=, order-success/dat-hang/thanh-cong?orderCode=, wishlist/yeu-thich, account/tai-khoan, order-tracking/theo-doi-don-hang?code=, admin/quan-tri, blog/blog, blog-detail/blog/[slug], compare/so-sanh; routeFromPath() inverse incl. query parsing
+- ui-store.setView now history.pushState(viewPath(...)) after state set; NEW setViewSilent for mounts/popstate (no double entries)
+- spa-shell: initialSlug prop replaced by generic route={view,params}; mount effect forces view silently — reads params from window.location when page doesn't pass them (static routes can't forward ?query) → refresh keeps /san-pham?cat=… filters; popstate listener re-syncs view from URL (back/forward)
+- 12 new route pages (server components with per-page Metadata): /san-pham, /gio-hang(no-index follow), /dat-hang, /thanh-toan, /dat-hang/thanh-cong, /yeu-thich, /tai-khoan, /theo-doi-don-hang, /quan-tri(no-index), /blog, /so-sanh + route-mount client bridge
+- NEW /blog/[slug] SEO page: generateMetadata (title/excerpt→desc/canonical/OG article/publishedTime/Twitter large card), BlogPosting JSON-LD w/ author resolved via authorId (schema has no author relation/updatedAt), notFound() → real 404 via blog/[slug]/not-found.tsx
+- sitemap.ts v2: static storefront entries + products AND published posts from DB; DB-failure tolerant
+- Fixed tsc errors by aligning selects to actual BlogPost model (no updatedAt, no author relation)
+- Agent-browser E2E PASSED: 12/12 routes HTTP 200; /gio-hang deep-link renders cart then logo-click pushes / and BACK restores /gio-hang{cart} FORWARD to /san-pham... ; /san-pham?cat=phong-khach direct load → store {cat} → H1 "Phòng Khách"; breadcrumb Sản phẩm click resets to /san-pham "Tất cả sản phẩm"; shop grid product card click → /san-pham/ban-lam-viec-go-oak-avh-od H1 matches; titles verified SSR for /san-pham /gio-hang /theo-doi-don-hang /blog /blog/[slug]; BlogPosting JSON-LD present
+- lint ✓ tsc ✓
+
+Stage Summary:
+- Every page now has a shareable/refreshable/back-forwardable URL without losing SPA speed or breaking existing setView call sites
+- SEO surfaces cover product detail, shop list, blog list/detail, static info pages; private flows stay no-index
