@@ -489,3 +489,23 @@ Stage Summary:
 - Việc còn lại cho chủ shop: sửa DUY NHẤT DATABASE_URL trên Vercel sang pooler 6543 của project mới (giá trị trong báo cáo cho user) → redeploy → web sống lại.
 - Root cause đã xử lý: cron keep-alive hằng ngày giữ Supabase không bao giờ pause vì vắng khách.
 - Đơn hàng cũ ở project bị pause: restore project cũ trong dashboard Supabase nếu cần export lịch sử; catalog mới đã đầy đủ không phụ thuộc project cũ.
+
+---
+Task ID: 9
+Agent: Z.ai Code (main)
+Task: Cấu hình webhook SePay MỚI (secret whsec_kIree...) — đối chiếu, test E2E và hướng dẫn cập nhật env Vercel.
+
+Work Log:
+- Đọc lại webhook route: HMAC-SHA256(rawBody, SEPAY_WEBHOOK_SECRET) → header X-SePay-Signature (fallback "<ts>.<rawBody>" khi có X-SePay-Timestamp); gate tài khoản cố định 08660628189; idempotent; flat success:true.
+- Grep SEPAY_API_TOKEN: CHƯA có code path nào dùng — chỉ lưu env (dành cho REST API SePay sau này).
+- Cập nhật .env local: SEPAY_WEBHOOK_SECRET + SEPAY_API_TOKEN (spsk_test_...).
+- Production check: /api/keep-alive → heartbeat ok (products:14) → CHỨNG NHẬN user đã cập nhật DATABASE_URL + redeploy thành công; orders: 0.
+- E2E production lần 1: order API yêu cầu login (requireUser Bearer). Đăng nhập buifkhanh57@gmail.com → tạo đơn AVH277521 (2.980.000₫, PENDING_VERIFY) → webhook ký bằng secret MỚI → 401 "Invalid signature" → CHẨN ĐOÁN: Vercel vẫn giữ SEPAY_WEBHOOK_SECRET cũ.
+- Dọn đơn test AVH277521 khỏi production DB (Bun SQL native, tránh regenerate Prisma client): delete order cascade + soldCount -1 + 2 SystemLog + 1 Notification → orders left = 0.
+- E2E LOCAL với secret mới (BASE_URL=localhost): tạo đơn AVH003910 → webhook ký đúng → 200 OK "Confirm success" → DB: PAID + PROCESSING + session SUCCESS → replay → ALREADY → sai TK → BANK_ACCOUNT_MISMATCH → cleanup (soldCount 217 như cũ). ✅ PASS TOÀN BỘ.
+- Thêm 3 script ops vào repo: test-sepay-webhook-e2e.ts (BASE_URL param), diag-sepay-webhook.ts, cleanup-test-order.ts (Bun SQL).
+
+Stage Summary:
+- Secret mới + scheme ký + code webhook ĐÃ CHỨNG MINH hoạt động (E2E local pass đủ 4 kịch bản: OK/ALREADY/MISMATCH/cleanup).
+- Việc còn lại 100% thuộc về chủ shop: Vercel → env SEPAY_WEBHOOK_SECRET = whsec_kIreeJXOj9T3cvkXZBK4giXF9bFQIUL8 → Save → Redeploy. Sau đó webhook SePay sẽ xác nhận đơn thật.
+- Production DB mới đã sống (heartbeat 14 SP, 0 đơn), có tool dọn đơn test trong repo.
