@@ -50,7 +50,7 @@ export function Footer() {
     <footer className="mt-auto border-t border-border/60 bg-muted/30">
       {/* Trust badges strip — all text admin-configurable */}
       <div className="border-b bg-card">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-6 sm:grid-cols-4 md:gap-6">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-4 sm:grid-cols-4 sm:py-6 md:gap-6">
           {badges.map((f, i) => (
             <div key={i} className="flex items-start gap-2.5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">

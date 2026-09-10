@@ -82,15 +82,15 @@ export function HomeView() {
       </section>
 
       {/* Categories — frameless tiles: chỉ ảnh + tên, không viền/khung */}
-      <section className="mt-8">
+      <section className="mt-6 sm:mt-8">
         <SectionHeader title="Danh mục nổi bật" subtitle="Duyệt theo không gian sống" />
         {!mounted || !categories ? (
-          <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+          <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-6 sm:gap-y-4">
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
           </div>
         ) : (
           <nav aria-label="Danh mục sản phẩm">
-            <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+            <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-6 sm:gap-y-4">
               {categories.map((c) => (
                 <a
                   key={c.id}
@@ -121,8 +121,8 @@ export function HomeView() {
 
       {/* Flash Sale */}
       {mounted && flashSale && flashSale.items.length > 0 && (
-        <section className="mt-8 overflow-hidden rounded-xl border-2 border-red-500/30 bg-gradient-to-br from-red-50/70 to-white dark:from-red-950/20 dark:to-transparent">
-          <div className="flex flex-col gap-2 border-b border-red-500/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mt-6 sm:mt-8 overflow-hidden rounded-xl border-2 border-red-500/30 bg-gradient-to-br from-red-50/70 to-white dark:from-red-950/20 dark:to-transparent">
+          <div className="flex flex-col gap-2 border-b border-red-500/20 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
             <div className="flex items-center gap-2">
               <Flame className="h-6 w-6 text-red-600" />
               <h2 className="text-lg font-bold text-red-700 dark:text-red-400 sm:text-xl">⚡ Flash Sale Cuối Tuần</h2>
@@ -133,7 +133,7 @@ export function HomeView() {
               <CountdownTimer target={flashEnd} variant="dark" size="sm" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-2 p-3 sm:gap-3 sm:p-4 sm:grid-cols-3 lg:grid-cols-6">
             {flashSale.items.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -147,7 +147,7 @@ export function HomeView() {
       )}
 
       {/* Featured */}
-      <section className="mt-8">
+      <section className="mt-6 sm:mt-8">
         <SectionHeader
           title="Sản phẩm nổi bật"
           subtitle="Được khách hàng yêu thích nhất"
@@ -166,9 +166,9 @@ export function HomeView() {
       </section>
 
       {/* Banner promo split */}
-      <section className="mt-8 grid gap-3 md:grid-cols-2">
+      <section className="mt-6 sm:mt-8 grid gap-3 md:grid-cols-2">
         <div className="relative aspect-[16/7] overflow-hidden rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-950/40 dark:to-teal-950/40">
-          <div className="absolute inset-0 flex flex-col justify-center p-6">
+          <div className="absolute inset-0 flex flex-col justify-center p-4 sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Bộ sưu tập mùa thu</p>
             <h3 className="mt-1 text-lg font-bold sm:text-2xl">Mang sắc thu vào tổ ấm</h3>
             <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Tone màu ấm, gỗ tự nhiên, vải linen êm ái</p>
@@ -178,7 +178,7 @@ export function HomeView() {
           </div>
         </div>
         <div className="relative aspect-[16/7] overflow-hidden rounded-xl bg-gradient-to-br from-rose-100 to-stone-100 dark:from-rose-950/40 dark:to-stone-900">
-          <div className="absolute inset-0 flex flex-col justify-center p-6">
+          <div className="absolute inset-0 flex flex-col justify-center p-4 sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">Phòng ngủ thư giãn</p>
             <h3 className="mt-1 text-lg font-bold sm:text-2xl">Giấc ngủ êm với AVH Sleep</h3>
             <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Giường bọc đầu êm ái, bảo hành 36 tháng</p>
@@ -190,7 +190,7 @@ export function HomeView() {
       </section>
 
       {/* New arrivals */}
-      <section className="mt-8">
+      <section className="mt-6 sm:mt-8">
         <SectionHeader
           title="Hàng mới về"
           subtitle="Cập nhật xu hướng nội thất mới nhất"
@@ -215,7 +215,7 @@ export function HomeView() {
       <RecentlyViewed />
 
       {/* Blog teaser */}
-      <section className="mt-8">
+      <section className="mt-6 sm:mt-8">
         <SectionHeader
           title="Cẩm nang nội thất"
           subtitle="Mẹo trang trí, xu hướng, hướng dẫn chọn đồ"
@@ -256,7 +256,7 @@ export function HomeView() {
       </section>
 
       {/* Newsletter / CTA */}
-      <section className="mt-8 overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary/80 px-6 py-8 text-center text-primary-foreground">
+      <section className="mt-6 sm:mt-8 overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary/80 px-6 py-8 text-center text-primary-foreground">
         <h3 className="text-lg font-bold sm:text-2xl">Trở thành thành viên AVH Gold</h3>
         <p className="mx-auto mt-1 max-w-xl text-sm opacity-90">
           Tích điểm mỗi đơn hàng, đổi voucher giảm giá, nhận ưu đãi độc quyền theo hạng thành viên.
@@ -309,7 +309,7 @@ function BestSellers() {
   })
   if (!data?.items?.length) return null
   return (
-    <section className="mt-8 rounded-xl border bg-card p-4 sm:p-5">
+    <section className="mt-6 sm:mt-8 rounded-xl border bg-card p-4 sm:p-5">
       <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
         <TrendingUp className="h-5 w-5 text-primary" /> Bán chạy nhất
       </h2>
@@ -344,7 +344,7 @@ function RecentlyViewed() {
   if (!mounted || items.length === 0) return null
 
   return (
-    <section className="mt-8">
+    <section className="mt-6 sm:mt-8">
       <SectionHeader title="Đã xem gần đây" subtitle="Sản phẩm bạn vừa xem" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
         {items.slice(0, 5).map((p) => (
