@@ -88,14 +88,57 @@ git push -u origin main
 
 ### Cấu hình biến môi trường
 
-Vào Vercel → Settings → Environment Variables:
+Vào Vercel → Settings → Environment Variables. **DATABASE_URL phải dùng
+connection POOLED (port 6543)** — host trực tiếp `db.<ref>.supabase.co`
+chỉ có IPv6, serverless Vercel không kết nối được:
 
-| Tên | Giá trị |
-|---|---|
-| `DATABASE_URL` | `postgresql://...` (từ Vercel Postgres / Supabase) |
-| `NEXTAUTH_SECRET` | chạy `openssl rand -base64 32` |
-| `NEXTAUTH_URL` | `https://avh-furniture.vercel.app` |
-| `ZAI_API_KEY` | API key z-ai-web-dev-sdk |
+| Tên | Giá trị | Ghi chú |
+|---|---|---|
+| `DATABASE_URL` | `postgresql://postgres.<ref>:<DB-PASSWORD>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require` | Supabase → Connect → Transaction pooler |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` | |
+| `NEXTAUTH_URL` | `https://<domain>` | |
+| `NEXT_PUBLIC_SITE_URL` | `https://<domain>` | SEO canonical + sitemap |
+| `SEPAY_WEBHOOK_SECRET` | trùng secret trong dashboard SePay | tự động xác nhận chuyển khoản |
+| `PAYMENT_WEBHOOK_SECRET` | random 32 ký tự | |
+| `CLOUDINARY_URL` | `cloudinary://<key>:<secret>@<cloud>` | lưu ảnh upload |
+| `GROQ_API_KEY` | `gsk_...` | chatbot AI |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` | tuỳ chọn (Storage/Realtime) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...` | tuỳ chọn, public |
+
+### Chống Supabase pause (QUAN TRỌNG)
+
+Supabase free **pause project sau ~5-7 ngày không có hoạt động** (không ai
+vào web = DB không được hỏi gì = bị pause = web chết). Đã fix tận gốc:
+
+- `vercel.json` khai báo cron mỗi ngày 02:00 UTC (09:00 giờ VN) gọi
+  `GET /api/keep-alive` → endpoint mở connection + query nhẹ → Supabase
+  tính là hoạt động, không bao giờ pause nữa.
+- Endpoint chỉ đọc, trả về số lượng sản phẩm/danh mục/đơn hàng (không lộ
+  dữ liệu nhạy cảm), trả 500 nếu DB chết để Vercel log cảnh báo.
+
+### Migrate sang project Supabase MỚI (project cũ bị pause)
+
+```bash
+# 1. Đẩy schema sang DB mới (dùng session pooler port 5432 cho ổn định)
+DATABASE_URL='postgresql://postgres.<ref>:<PASS>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require' \
+  bunx prisma db push
+
+# 2. Copy dữ liệu catalog từ SQLite local (sản phẩm, danh mục, blog, banner,
+#    voucher, setting) — bỏ qua đơn hàng/user test:
+DATABASE_URL='postgresql://postgres.<ref>:<PASS>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require' \
+  ONLY_TABLES='Category,Product,ProductVariant,ProductMedia,Voucher,Banner,BlogPost,Setting' \
+  bun run migrate:sqlite-to-postgres
+
+# 3. Deploy → lần truy cập đầu tiên /api/seed tự tạo admin + đồng bộ
+#    tài khoản ngân hàng (ensureFixedBankAccountSetting).
+```
+
+> ⚠ `BlogPost.authorId` trỏ tới User — khi bỏ qua bảng User, script loại
+> author (cột nullable) nên không lỗi FK.
+>
+> 💡 Đơn hàng/khách hàng của project cũ (đã pause): vào dashboard Supabase
+> → chọn project cũ → **Restore project** để mở lại rồi export, hoặc bỏ
+> qua nếu chỉ cần catalog + đơn mới.
 
 ### Thêm tên miền riêng
 
