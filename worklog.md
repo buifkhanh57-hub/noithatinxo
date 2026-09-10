@@ -527,3 +527,26 @@ Stage Summary:
 - Secret SePay mới đã khớp Vercel env (webhook 200 thay vì 401).
 - Việc còn lại cho chủ shop: (1) sửa CNAME www → cname.vercel-dns.com; (2) env Vercel NEXT_PUBLIC_SITE_URL + NEXTAUTH_URL = https://noithatavh.info.vn → redeploy (SEO/sitemap/OAuth dùng domain mới).
 - Tool: e2e-domain-pinned.ts dùng được cho mọi domain sau này khi DNS sandbox cache cũ (PIN_IP + DOMAIN + SECRET + POOLER_URL).
+
+---
+Task ID: 11
+Agent: main
+Task: Fix lỗi upload ảnh HTTP 404 + 413 trên Vercel (domain noithatavh.info.vn)
+
+Work Log:
+- Chẩn đoán: /api/upload bị commit c504f23 xóa nhầm → 404 trên production; storage cũ fallback base64 data-URI + client cho 8MB/file, nhiều file/request → vượt cap 4.5MB body Vercel → 413
+- Phát hiện quan trọng: Supabase Storage API BẮT BUỘC header `apikey` + `Authorization: Bearer` (chỉ Bearer → 403 Invalid Compact JWS); đã test live bằng curl
+- Tạo bucket public "media" (limit 50MB) trên Supabase project bzlaulmrxnmaagsibzty
+- Rewrite src/lib/storage.ts: upload → Supabase Storage REST (bucket media, path {folder}/{yyyy}/{mm}/{ts}-{rand}-{slug}.{ext}), trả public URL CDN; fallback data-URI khi thiếu env; có deleteFile()
+- Khôi phục src/app/api/upload/route.ts (auth contract giữ nguyên NO_TOKEN/TOKEN_EXPIRED/TOKEN_INVALID/FORBIDDEN); limits mới: ảnh 6MB, video 4MB, tối đa 10 file
+- upload-client.ts: nén ảnh >1MB trong browser (canvas → WebP q0.85/0.7/0.55 → JPEG nền trắng, max 1920px), gửi TỪNG FILE MỘT tuần tự → không bao giờ chạm 4.5MB; GIF/AVIF không nén (cap 3MB)
+- E2E local PASS: login → upload → URL Supabase CDN → GET 200; không token → 401 NO_TOKEN
+- Commit 1392f03 push → Vercel deploy live sau 88s
+- E2E production: trúng deployment mới → upload success:true NHƯNG trả về data:base64 (không phải URL Supabase) = project Vercel THIẾU env Supabase
+- Poll 10x: 7 request rơi vào deployment CŨ (không có keep-alive), 3 vào deployment mới = domain bị 2 project cùng giữ (flap)
+
+Stage Summary:
+- Code fix HOÀN CHỈNH và đã deploy (1392f03); cần user làm 2 việc trên Vercel dashboard:
+  1. Thêm env: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY → Redeploy (NEXT_PUBLIC bake lúc build)
+  2. Remove domain noithatavh.info.vn khỏi project CŨ (chỉ giữ ở project chính) — domain đang flap 70/30 giữa 2 deployment
+- File test trong bucket đã dọn sạch; không sót DB row
