@@ -50,8 +50,10 @@ export async function POST(req: NextRequest) {
     // Settings
     const settingCount = await db.setting.count().catch(() => 0)
     if (settingCount === 0) {
-      await db.setting.create({ data: { key: 'payment_bank_accounts', value: JSON.stringify([{ bank: 'Vietcombank', bankCode: 'vcb', accountNumber: '0123456789', holder: 'NỘI THẤT AVH', branch: 'CN TP.HCM' }]), label: 'Tài khoản ngân hàng', group: 'payment' } }).catch(() => {})
-      results.push('✓ Created default settings')
+      // Seed the REAL fixed bank account (same source of truth as orders +
+      // the SePay webhook) — never placeholders.
+      await db.setting.create({ data: { key: 'payment_bank_accounts', value: JSON.stringify([{ bank: 'MB Bank', bankCode: 'mb', accountNumber: '08660628189', holder: 'PHAM THI HAI YEN', branch: '' }]), label: 'Tài khoản ngân hàng', group: 'payment' } }).catch(() => {})
+      results.push('✓ Created default settings (fixed MB Bank account)')
     }
 
     const users = await db.user.count().catch(() => 0)

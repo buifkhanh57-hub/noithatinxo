@@ -441,3 +441,27 @@ Stage Summary:
 - WEBHOOK URL cho SePay dashboard: https://noithatinxo.vercel.app/api/payments/sepay/webhook
 - Endpoint đã xác minh sống, bảo mật HMAC hoạt động, secret env có sẵn trên Vercel.
 - Lưu ý cho chủ shop: Webhook Secret trong SePay dashboard phải TRÙNG GIÁ TRỊ với env SEPAY_WEBHOOK_SECRET trên Vercel; đổi secret ở SePay thì phải cập nhật env Vercel + redeploy.
+
+---
+Task ID: 7
+Agent: Z.ai Code (main)
+Task: Sửa TOÀN BỘ thông tin ngân hàng sang tài khoản thật: 08660628189 — MB Bank — PHAM THI HAI YEN (thay tài khoản test SePay cũ 0000000002 · BUI THI BAO LOAN).
+
+Work Log:
+- src/lib/fixed-bank-account.ts: FIXED_BANK_ACCOUNT = MB Bank / mb / 08660628189 / PHAM THI HAI YEN. Đây là nguồn chân lý duy nhất: orders API snapshot vào PaymentSession, webhook SePay đối soát (isFixedBankAccount), payment-view fallback, banner admin.
+- src/lib/bank-settings-sync.ts (MỚI): ensureFixedBankAccountSetting() — mirror cứng Setting `payment_bank_accounts` (mà checkout BankTransferInfo đang đọc) về đúng tài khoản cố định; có log SystemLog để đối chiếu; idempotent (in-sync thì không ghi).
+- src/app/api/seed/route.ts: GET+POST gọi ensureFixedBankAccountSetting() → production DB tự sửa ngay sau deploy (shell gọi /api/seed mỗi lần tải trang). Kết quả trả kèm `bankSync`.
+- src/app/api/setup-db/route.ts: seed mặc định từ tài khoản Vietcombank GIẢ (0123456789 · NỘI THẤT AVH) → tài khoản thật MB.
+- src/lib/ai-agent.ts: cập nhật dòng tri thức AI agent về tài khoản ngân hàng.
+- Kiến trúc DB: schema.prisma (repo/Vercel) GIỮ NGUYÊN provider postgresql; thêm prisma/schema.dev.prisma (provider sqlite) cho local dev + script `bun run db:dev`. Fix triệt để tình trạng "restart server local là DB chết" (client sqlite generate từ schema dev, Vercel build vẫn generate từ schema postgres).
+- Kiểm chứng local (SQLite + secret tạm):
+  + /api/seed → bankSync:"created"; /api/admin/settings → payment_bank_accounts = [{"bank":"MB Bank","bankCode":"mb","accountNumber":"08660628189","holder":"PHAM THI HAI YEN"}].
+  + Webhook: payload đúng TK 08660628189 → qua cổng tài khoản (404 NOT_FOUND khi đơn chưa tồn tại); payload TK test cũ 0000000002 → 200 BANK_ACCOUNT_MISMATCH kèm expectedAccount=08660628189.
+  + E2E toàn vòng: login → tạo đơn BANK AVH325127 (2.980.000₫, PENDING_VERIFY) → webhook signed đúng TK + đủ tiền → 200 OK "Confirm success" → replay → ALREADY (chống cộng gộp) → đơn chuyển PAID + PROCESSING.
+  + Trang thanh toán đơn PENDING (AVH580784): hiển thị MB Bank · 08660628189 · PHAM THI HAI YEN, QR = img.vietqr.io/image/mb-08660628189-qr_only.png?amount=2980000&addInfo=AVH580784&accountName=PHAM THI HAI YEN.
+- Gate: tsc sạch, eslint sạch, schema.prisma diff rỗng, home 200 + 14 sản phẩm.
+
+Stage Summary:
+- Toàn hệ thống (QR, checkout, payment, đơn hàng, webhook, AI agent, admin display, seed) dùng chung MỘT tài khoản: MB Bank 08660628189 — PHAM THI HAI YEN.
+- Production self-heal: ngay khi Vercel deploy bản mới, lần tải trang đầu tiên sẽ đồng bộ Setting ngân hàng trong Supabase về tài khoản mới (bankSync=repaired/created).
+- Lưu ý SePay: webhook chỉ ghi nhận tiền vào ĐÚNG số TK 08660628189; nếu trong dashboard SePay đang trỏ tài khoản test thì đổi về tài khoản thật này.

@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "setup:zai": "node scripts/setup-zai-config.js",
-    "migrate:sqlite-to-postgres": "node scripts/migrate-sqlite-to-postgres.js"
+    "migrate:sqlite-to-postgres": "node scripts/migrate-sqlite-to-postgres.js",
+    "db:dev": "prisma db push --schema prisma/schema.dev.prisma --accept-data-loss && prisma generate --schema prisma/schema.dev.prisma"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
