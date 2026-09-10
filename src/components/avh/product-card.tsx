@@ -126,7 +126,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
             <Badge className="bg-emerald-600 text-white shadow">Mới</Badge>
           )}
           {product.isFlashSale && (
-            <Badge className="bg-amber-500 text-white shadow">Flash Sale</Badge>
+            <Badge className="bg-red-600 text-white shadow">Flash Sale</Badge>
           )}
         </div>
         {/* hover actions */}

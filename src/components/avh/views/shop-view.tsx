@@ -279,7 +279,7 @@ export function ShopView() {
 
       {/* Flash sale banner */}
       {navFlash && (
-        <div className="mb-4 overflow-hidden rounded-xl border-2 border-red-500/40 bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30">
+        <div className="mb-4 overflow-hidden rounded-xl border-2 border-red-500/30 bg-gradient-to-br from-red-50/70 to-white dark:from-red-950/30 dark:to-transparent">
           <div className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Flame className="h-6 w-6 text-red-600" />

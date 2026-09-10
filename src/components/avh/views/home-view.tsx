@@ -121,8 +121,8 @@ export function HomeView() {
 
       {/* Flash Sale */}
       {mounted && flashSale && flashSale.items.length > 0 && (
-        <section className="mt-8 overflow-hidden rounded-xl border-2 border-amber-500/40 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:to-red-950/20">
-          <div className="flex flex-col gap-2 border-b border-amber-500/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mt-8 overflow-hidden rounded-xl border-2 border-red-500/30 bg-gradient-to-br from-red-50/70 to-white dark:from-red-950/20 dark:to-transparent">
+          <div className="flex flex-col gap-2 border-b border-red-500/20 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Flame className="h-6 w-6 text-red-600" />
               <h2 className="text-lg font-bold text-red-700 dark:text-red-400 sm:text-xl">⚡ Flash Sale Cuối Tuần</h2>
@@ -138,7 +138,7 @@ export function HomeView() {
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
-          <div className="border-t border-amber-500/30 p-3 text-center">
+          <div className="border-t border-red-500/20 p-3 text-center">
             <Button variant="outline" size="sm" onClick={() => setView('shop', { flashSale: 'true' })} className="gap-1.5">
               Xem tất cả flash sale <ArrowRight className="h-4 w-4" />
             </Button>
@@ -177,7 +177,7 @@ export function HomeView() {
             </Button>
           </div>
         </div>
-        <div className="relative aspect-[16/7] overflow-hidden rounded-xl bg-gradient-to-br from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-amber-950/40">
+        <div className="relative aspect-[16/7] overflow-hidden rounded-xl bg-gradient-to-br from-rose-100 to-stone-100 dark:from-rose-950/40 dark:to-stone-900">
           <div className="absolute inset-0 flex flex-col justify-center p-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">Phòng ngủ thư giãn</p>
             <h3 className="mt-1 text-lg font-bold sm:text-2xl">Giấc ngủ êm với AVH Sleep</h3>
