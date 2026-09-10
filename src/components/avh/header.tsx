@@ -12,6 +12,7 @@ import {
   Phone,
   ChevronRight,
   LayoutDashboard,
+  LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -49,6 +50,7 @@ export function Header() {
   const wishlistCount = useWishlistStore((s) => s.productIds.length)
   const compareCount = useCompareStore((s) => s.productIds.length)
   const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
   const mounted = useMounted()
   const settings = useSettingsStore()
   const announcementText = settings.get('announcement_text')
@@ -94,22 +96,22 @@ export function Header() {
 
   return (
     <>
-      {/* Announcement bar — text & links are admin-configurable */}
-      <div className="border-b border-border/60 bg-background/70 text-foreground/80 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+      {/* Announcement bar — brand red strip, admin-configurable text */}
+      <div className="bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 text-[11px] sm:text-xs">
-          <p className="flex items-center gap-1.5 truncate">
-            <Phone className="h-3 w-3 shrink-0 text-muted-foreground" />
+          <p className="flex items-center gap-1.5 truncate text-white/95">
+            <Phone className="h-3 w-3 shrink-0 text-white/80" />
             <span className="truncate">{announcementText}</span>
           </p>
-          <div className="hidden items-center gap-3 sm:flex">
+          <div className="hidden items-center gap-3 text-white/90 sm:flex">
             {showTracking && (
-              <button onClick={() => go('order-tracking')} className="transition-colors hover:text-foreground hover:underline">
+              <button onClick={() => go('order-tracking')} className="transition-colors hover:text-white hover:underline">
                 Theo dõi đơn
               </button>
             )}
             {showTracking && showBlog && <span className="opacity-50">·</span>}
             {showBlog && (
-              <button onClick={() => go('blog')} className="transition-colors hover:text-foreground hover:underline">
+              <button onClick={() => go('blog')} className="transition-colors hover:text-white hover:underline">
                 Cẩm nang
               </button>
             )}
@@ -136,6 +138,68 @@ export function Header() {
               <SheetHeader className="px-4 py-4 border-b">
                 <SheetTitle className="text-left">Danh mục</SheetTitle>
               </SheetHeader>
+
+              {/* Account block — login/register for guests, avatar + name for users */}
+              <div className="border-b bg-muted/30 px-4 py-3">
+                {mounted && user ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.name} className="h-10 w-10 shrink-0 rounded-full border object-cover" />
+                      ) : (
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold">{user.name}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2.5 flex gap-2">
+                      <Button
+                        size="sm"
+                        className="h-8 flex-1 gap-1.5"
+                        onClick={() => go('account')}
+                      >
+                        <User className="h-3.5 w-3.5" /> Tài khoản
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 flex-1 gap-1.5"
+                        onClick={() => {
+                          logout()
+                          setMobileMenuOpen(false)
+                        }}
+                      >
+                        <LogOut className="h-3.5 w-3.5" /> Đăng xuất
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold">Đăng nhập / Đăng ký</p>
+                      <p className="text-[11px] text-muted-foreground">Mua hàng, tích điểm &amp; theo dõi đơn</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="h-8 shrink-0"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        setAuthOpen(true)
+                      }}
+                    >
+                      Vào ngay
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <nav className="flex flex-col gap-0.5 p-2">
                 <button
                   onClick={() => go('home')}
@@ -189,9 +253,13 @@ export function Header() {
                 AVH
               </div>
             )}
-            <div className="hidden flex-col leading-none sm:flex">
-              <span className="text-sm font-bold tracking-tight text-foreground">{brandName.toUpperCase()}</span>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{brandTagline}</span>
+            <div className="flex min-w-0 flex-col items-start leading-none">
+              <span className="truncate text-sm font-extrabold tracking-tight text-primary sm:text-base">
+                {brandName.toUpperCase()}
+              </span>
+              <span className="mt-0.5 hidden text-[10px] uppercase tracking-wider text-muted-foreground sm:block">
+                {brandTagline}
+              </span>
             </div>
           </button>
 
@@ -270,11 +338,32 @@ export function Header() {
               size="icon"
               className="relative"
               onClick={() => (user ? go('account') : setAuthOpen(true))}
-              aria-label="Tài khoản"
+              aria-label={user ? `Tài khoản ${user.name}` : 'Đăng nhập / Đăng ký'}
             >
-              <User className="h-5 w-5" />
-              {user && <span className="sr-only">{user.name}</span>}
+              {mounted && user ? (
+                user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="h-7 w-7 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                )
+              ) : (
+                <User className="h-5 w-5" />
+              )}
+              {mounted && user && (
+                <span className="sr-only">{user.name}</span>
+              )}
             </Button>
+            {mounted && user && (
+              <button
+                onClick={() => go('account')}
+                className="hidden max-w-[96px] truncate text-xs font-semibold hover:text-primary lg:block"
+                aria-label="Tài khoản của tôi"
+              >
+                {user.name}
+              </button>
+            )}
             <Button
               variant="ghost"
               size="icon"

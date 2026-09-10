@@ -6,10 +6,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useUIStore } from '@/lib/stores/ui-store'
-import { useCartStore } from '@/lib/stores/cart-store'
 import { useWishlistStore } from '@/lib/stores/wishlist-store'
 import { useCompareStore } from '@/lib/stores/compare-store'
-import { useAuthStore } from '@/lib/stores/auth-store'
 import { formatVND, discountPct } from '@/lib/format'
 import { StarRating } from './star-rating'
 import { toast } from 'sonner'
@@ -38,43 +36,9 @@ export interface ProductListItem {
 
 export function ProductCard({ product }: { product: ProductListItem }) {
   const setView = useUIStore((s) => s.setView)
-  const addItem = useCartStore((s) => s.addItem)
-  const openCart = useUIStore((s) => s.openCart)
-  const user = useAuthStore((s) => s.user)
   const wishlist = useWishlistStore()
   const compare = useCompareStore()
   const disc = product.discountPct || discountPct(product.basePrice, product.comparePrice)
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-    // Require login before adding to cart — guests must register/login
-    // first so we can persist their cart + track their order history.
-    // Without this, guest carts are anonymous + can be lost on browser
-    // data clear, and orders can't be associated with a customer account.
-    if (!user) {
-      toast.info('Vui lòng đăng nhập để thêm vào giỏ hàng', {
-        description: 'Tài khoản giúp lưu giỏ hàng + theo dõi đơn hàng của bạn.',
-      })
-      setView('account')
-      return
-    }
-    addItem({
-      productId: product.id,
-      name: product.name,
-      slug: product.slug,
-      image: product.image,
-      unitPrice: product.basePrice,
-      comparePrice: product.comparePrice ?? undefined,
-      color: product.colors?.[0],
-      material: product.materials?.[0],
-      quantity: 1,
-    })
-    toast.success('Đã thêm vào giỏ hàng', {
-      description: product.name,
-    })
-    openCart()
-  }
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -106,7 +70,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
       role="article"
       aria-label={product.name}
       onClick={() => setView('product', { slug: product.slug })}
-      className="group relative flex flex-col overflow-hidden border-border/60 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer bg-card"
+      className="group relative flex flex-col overflow-hidden border border-neutral-900/25 bg-card transition-all duration-300 hover:border-neutral-900/40 hover:shadow-lg hover:-translate-y-1 cursor-pointer"
     >
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted/40">
@@ -194,7 +158,13 @@ export function ProductCard({ product }: { product: ProductListItem }) {
         <Button
           size="sm"
           className="mt-2.5 w-full gap-1"
-          onClick={handleAddToCart}
+          onClick={(e) => {
+            // Buy button opens the product detail view first — user reviews
+            // info (variants, description) then adds to cart / orders there.
+            e.stopPropagation()
+            e.preventDefault()
+            setView('product', { slug: product.slug })
+          }}
           disabled={!product.inStock}
         >
           <ShoppingCart className="h-4 w-4" />

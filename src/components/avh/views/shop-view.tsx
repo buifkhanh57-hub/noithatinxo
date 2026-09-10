@@ -173,12 +173,13 @@ export function ShopView() {
       ? 'Hàng mới về'
       : activeCategory?.name || (navQ ? `Tìm kiếm: "${navQ}"` : 'Tất cả sản phẩm')
 
-  // Stable flash sale countdown target (next ~23h59m)
+  // Flash sale deadline: 23:59:59 TODAY — real end, banner hides when over.
   const flashTarget = useMemo(() => {
     const d = new Date()
-    d.setHours(d.getHours() + 23, 59, 59, 999)
+    d.setHours(23, 59, 59, 999)
     return d
   }, [navFlash])
+  const [flashOver, setFlashOver] = useState(false)
 
   const hasActiveFilters =
     !!navCat || !!navQ || navFlash || navIsNew ||
@@ -277,18 +278,31 @@ export function ShopView() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Flash sale banner */}
-      {navFlash && (
-        <div className="mb-4 overflow-hidden rounded-xl border-2 border-red-500/30 bg-gradient-to-br from-red-50/70 to-white dark:from-red-950/30 dark:to-transparent">
-          <div className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <Flame className="h-6 w-6 text-red-600" />
-              <h1 className="text-lg font-bold text-red-700 dark:text-red-400 sm:text-2xl">⚡ Flash Sale Đang Diễn Ra</h1>
-              <Badge className="bg-red-600 text-white">Cực sốc</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-red-700 dark:text-red-400">Kết thúc trong</span>
-              <CountdownTimer target={flashTarget} variant="dark" size="sm" />
+      {/* Flash sale banner — matching home red ticket style. Hidden when ended. */}
+      {navFlash && !flashOver && (
+        <div className="mb-4 overflow-hidden rounded-2xl shadow-lg shadow-red-600/15 ring-1 ring-red-600/25">
+          <div className="relative bg-gradient-to-r from-red-700 via-red-600 to-rose-500 px-4 py-3.5 sm:px-5">
+            <div aria-hidden className="pointer-events-none absolute -right-8 -top-14 h-36 w-36 rounded-full bg-white/10" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-10 right-24 h-20 w-20 rounded-full bg-white/10" />
+            <div className="relative flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                  <Flame className="h-5 w-5 text-white" aria-hidden />
+                </span>
+                <div>
+                  <h1 className="text-base font-extrabold uppercase leading-tight tracking-wide text-white sm:text-2xl">
+                    Flash Sale Đang Diễn Ra
+                  </h1>
+                  <p className="text-[11px] font-medium text-white/85 sm:text-xs">Giá sốc mỗi ngày · Áp dụng đến hết hàng</p>
+                </div>
+                <Badge className="ml-1 hidden rounded-full bg-white text-xs font-extrabold text-red-600 shadow-sm sm:inline-flex">
+                  Cực sốc
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-white/90 sm:text-xs">Kết thúc sau</span>
+                <CountdownTimer target={flashTarget} variant="light" size="sm" onEnd={() => setFlashOver(true)} />
+              </div>
             </div>
           </div>
         </div>

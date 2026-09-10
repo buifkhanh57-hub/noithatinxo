@@ -44,9 +44,9 @@
 }
 
 /*
-  Nội Thất AVH brand palette — white minimalist.
-  Primary: near-black charcoal (buttons, prices) on pure white.
-  Accent: neutral gray. Dark mode: white primary on charcoal.
+  Nội Thất AVH brand palette — white minimalist + brand RED.
+  Background: pure white. Primary: AVH red (buttons, prices, logo).
+  Prices & CTAs use --primary so they stay red everywhere.
   No indigo/blue per project rules.
 */
 :root {
@@ -57,8 +57,8 @@
   --card-foreground: oklch(0.20 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.20 0 0);
-  /* primary: charcoal — clean white-store look */
-  --primary: oklch(0.20 0 0);
+  /* primary: AVH brand red — buttons, prices, logo */
+  --primary: oklch(0.55 0.22 26);
   --primary-foreground: oklch(0.985 0 0);
   /* secondary: light neutral */
   --secondary: oklch(0.96 0 0);
@@ -70,7 +70,7 @@
   --destructive: oklch(0.58 0.22 25);
   --border: oklch(0.90 0 0);
   --input: oklch(0.92 0 0);
-  --ring: oklch(0.20 0 0);
+  --ring: oklch(0.55 0.22 26);
   --chart-1: oklch(0.20 0 0);      /* charcoal */
   --chart-2: oklch(0.62 0.10 130); /* sage green */
   --chart-3: oklch(0.50 0.08 60);  /* walnut */
@@ -93,9 +93,9 @@
   --card-foreground: oklch(0.96 0 0);
   --popover: oklch(0.21 0 0);
   --popover-foreground: oklch(0.96 0 0);
-  /* primary: white on dark — same white identity */
-  --primary: oklch(0.93 0 0);
-  --primary-foreground: oklch(0.18 0 0);
+  /* primary: AVH red (slightly brighter for dark bg) */
+  --primary: oklch(0.65 0.21 25);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.27 0 0);
   --secondary-foreground: oklch(0.96 0 0);
   --muted: oklch(0.27 0 0);
@@ -105,7 +105,7 @@
   --destructive: oklch(0.70 0.20 22);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.93 0 0);
+  --ring: oklch(0.65 0.21 25);
   --chart-1: oklch(0.93 0 0);
   --chart-2: oklch(0.70 0.10 130);
   --chart-3: oklch(0.60 0.08 60);
@@ -113,8 +113,8 @@
   --chart-5: oklch(0.55 0.06 250);
   --sidebar: oklch(0.21 0 0);
   --sidebar-foreground: oklch(0.96 0 0);
-  --sidebar-primary: oklch(0.93 0 0);
-  --sidebar-primary-foreground: oklch(0.18 0 0);
+  --sidebar-primary: oklch(0.65 0.21 25);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.30 0 0);
   --sidebar-accent-foreground: oklch(0.96 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);

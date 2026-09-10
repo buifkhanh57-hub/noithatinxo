@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useUIStore } from '@/lib/stores/ui-store'
@@ -10,7 +11,7 @@ import { ProductCard, ProductListItem } from '@/components/avh/product-card'
 import { CountdownTimer } from '@/components/avh/countdown-timer'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowRight, Flame, Sparkles, Truck, ShieldCheck, Headphones, TrendingUp, Newspaper } from 'lucide-react'
+import { ArrowRight, Flame, Sparkles, Truck, ShieldCheck, Headphones, TrendingUp, Newspaper, Zap } from 'lucide-react'
 import Image from 'next/image'
 import { formatVND } from '@/lib/format'
 
@@ -52,9 +53,15 @@ export function HomeView() {
     queryFn: () => api.get('/api/blog'),
   })
 
-  // 2-day flash sale window anchored to a fixed start so the countdown is stable
-  const flashEnd = new Date()
-  flashEnd.setHours(flashEnd.getHours() + 23, 59, 59)
+  // Flash sale window: ends at 23:59:59 TODAY (real deadline). When the
+  // countdown hits zero the whole section hides — no fake "permanent" sale.
+  // useMemo keeps the target stable across re-renders so it never drifts.
+  const flashEnd = useMemo(() => {
+    const d = new Date()
+    d.setHours(23, 59, 59, 999)
+    return d
+  }, [])
+  const [flashOver, setFlashOver] = useState(false)
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
@@ -70,7 +77,7 @@ export function HomeView() {
           { icon: Headphones, title: 'Hỗ trợ 24/7', sub: 'Trợ Lý AVH' },
         ].map((s, i) => (
           <div key={i} className="flex items-center gap-2.5 rounded-lg border bg-card p-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
               <s.icon className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -119,29 +126,72 @@ export function HomeView() {
         )}
       </section>
 
-      {/* Flash Sale */}
-      {mounted && flashSale && flashSale.items.length > 0 && (
-        <section className="mt-6 sm:mt-8 overflow-hidden rounded-xl border-2 border-red-500/30 bg-gradient-to-br from-red-50/70 to-white dark:from-red-950/20 dark:to-transparent">
-          <div className="flex flex-col gap-2 border-b border-red-500/20 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-            <div className="flex items-center gap-2">
-              <Flame className="h-6 w-6 text-red-600" />
-              <h2 className="text-lg font-bold text-red-700 dark:text-red-400 sm:text-xl">⚡ Flash Sale Cuối Tuần</h2>
-              <span className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">-35%</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-red-700 dark:text-red-400">Kết thúc trong:</span>
-              <CountdownTimer target={flashEnd} variant="dark" size="sm" />
+      {/* Flash Sale — ticket-style red banner with scalloped edge.
+          Hidden completely once the countdown reaches zero. */}
+      {mounted && !flashOver && flashSale && flashSale.items.length > 0 && (
+        <section
+          aria-label="Flash sale cuối tuần"
+          className="mt-6 overflow-hidden rounded-2xl shadow-lg shadow-red-600/15 ring-1 ring-red-600/25 sm:mt-8"
+        >
+          {/* Red gradient header band */}
+          <div className="relative bg-gradient-to-r from-red-700 via-red-600 to-rose-500 px-4 py-3.5 sm:px-5">
+            <div aria-hidden className="pointer-events-none absolute -right-8 -top-14 h-36 w-36 rounded-full bg-white/10" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-10 right-24 h-20 w-20 rounded-full bg-white/10" />
+            <div aria-hidden className="pointer-events-none absolute left-1/2 top-1.5 h-2 w-2 rounded-full bg-white/25" />
+            <div className="relative flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                  <Flame className="h-5 w-5 text-white" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="truncate text-base font-extrabold uppercase leading-tight tracking-wide text-white sm:text-xl">
+                    Flash Sale Cuối Tuần
+                  </h2>
+                  <p className="text-[11px] font-medium text-white/85 sm:text-xs">
+                    Giảm sốc đến 35% · Số lượng có hạn
+                  </p>
+                </div>
+                <span className="ml-1 hidden rounded-full bg-white px-2.5 py-1 text-xs font-extrabold text-red-600 shadow-sm sm:inline-block">
+                  -35%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-white/90 sm:text-xs">
+                  Kết thúc sau
+                </span>
+                <CountdownTimer target={flashEnd} variant="light" size="sm" onEnd={() => setFlashOver(true)} />
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 p-3 sm:gap-3 sm:p-4 sm:grid-cols-3 lg:grid-cols-6">
-            {flashSale.items.map((p) => (
-              <ProductCard key={p.id} product={p} />
+          {/* Scalloped tear between header and body */}
+          <svg
+            aria-hidden
+            className="block h-2 w-full bg-gradient-to-r from-red-700 via-red-600 to-rose-500 text-white"
+            preserveAspectRatio="none"
+            viewBox="0 0 240 8"
+          >
+            {Array.from({ length: 30 }).map((_, i) => (
+              <circle key={i} cx={i * 8 + 4} cy={8} r={4.5} fill="currentColor" />
             ))}
-          </div>
-          <div className="border-t border-red-500/20 p-3 text-center">
-            <Button variant="outline" size="sm" onClick={() => setView('shop', { flashSale: 'true' })} className="gap-1.5">
-              Xem tất cả flash sale <ArrowRight className="h-4 w-4" />
-            </Button>
+          </svg>
+          {/* White body */}
+          <div className="bg-white px-3 pb-3.5 pt-2.5 sm:px-4 sm:pb-4">
+            <div className={`grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 ${flashSale.items.length > 4 ? 'lg:grid-cols-6' : 'lg:grid-cols-4'}`}>
+              {flashSale.items.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Button
+                size="sm"
+                onClick={() => setView('shop', { flashSale: 'true' })}
+                className="gap-1.5 bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md hover:from-red-700 hover:to-rose-600"
+              >
+                <Zap className="h-4 w-4" aria-hidden />
+                Xem tất cả ưu đãi
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Button>
+            </div>
           </div>
         </section>
       )}

@@ -550,3 +550,40 @@ Stage Summary:
   1. Thêm env: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY → Redeploy (NEXT_PUBLIC bake lúc build)
   2. Remove domain noithatavh.info.vn khỏi project CŨ (chỉ giữ ở project chính) — domain đang flap 70/30 giữa 2 deployment
 - File test trong bucket đã dọn sạch; không sót DB row
+
+---
+Task ID: 12
+Agent: Z.ai Code (main)
+Task: Đổi theme trắng + đỏ AVH (nền trắng, giá/nút/logo đỏ, flash sale redesign, tên thương hiệu cạnh logo mobile)
+
+Work Log:
+- ROOT CAUSE nền đen: layout.tsx đang forcedTheme="dark" → đổi thành "light" (cả defaultTheme), khóa trắng vĩnh viễn
+- globals.css: --primary chuyển từ charcoal #161616 → đỏ AVH oklch(0.55 0.22 26) ≈ #d40a1f (+ ring đỏ); dark variant đỏ sáng hơn
+- header.tsx: tên thương hiệu hiện cả trên mobile (truớc đây hidden sm:flex), chữ đỏ text-primary; logo fallback bg-primary tự đỏ
+- Flash sale redesign (home-view): ticket đỏ gradient from-red-700 via-red-600 to-rose-500, viền tròn 2xl + ring + shadow đỏ, circles trang trí, scallop SVG edge giữa header/body, countdown variant light (hộp trắng số đỏ), CTA gradient đỏ, grid lg:grid-cols-6/4 theo số SP
+- shop-view flash banner: cùng style ticket đỏ
+- countdown-timer: variant light = bg-white text-red-600
+- Bẫy dev server: Turbopack không recompile CSS → restart; process chết khi call kết thúc → fix bằng (setsid ... &) double-fork subshell
+- Verify browser (mobile 390px + desktop 1366px): nền trắng ✓ giá đỏ ✓ nút đỏ ✓ ticket flash sale ✓ tên + logo mobile ✓ guest bấm Mua Hàng → redirect login ✓ footer stick bottom ✓
+
+Stage Summary:
+- Toàn site: nền TRẮNG + điểm nhấn ĐỎ AVH (#d40a1f): announcement, nút, giá, badge, logo, flash ticket
+- Commit push → Vercel auto deploy
+
+---
+Task ID: 13
+Agent: Z.ai Code (main)
+Task: Login/đăng ký trong menu 3 gạch + avatar/tên user; Mua Hàng → trang chi tiết; viền đen siêu mỏng cho product card; flash sale kết thúc thật (hết 24h ẩn); thêm đỏ nổi bật giữ nền trắng
+
+Work Log:
+- header.tsx: (1) announcement bar nền ĐỎ chữ trắng; (2) header: avatar tròn đỏ (chữ cái đầu) hoặc ảnh avatarUrl + tên user (lg), click → account/login; (3) menu 3 gạch thêm block tài khoản trên cùng: guest = "Đăng nhập / Đăng ký" + nút đỏ "Vào ngay" mở AuthDialog; user = avatar + tên + email + 2 nút "Tài khoản"/"Đăng xuất" (logout qua auth-store)
+- product-card.tsx: Card border-border/60 → border border-neutral-900/25 (viền đen 1px siêu mỏng, hover /40); nút "Mua Hàng" KHÔNG còn add-to-cart trực tiếp → setView product detail (đã bỏ handleAddToCart + imports rác)
+- product-view.tsx: nút chính đổi label "Thêm vào giỏ hàng", sticky bar mobile "Thêm vào giỏ"; giữ "Mua ngay" → đúng flow: xem thông tin → thêm giỏ → đặt hàng
+- Flash sale THẬT: flashEnd = 23:59:59 hôm nay (useMemo ổn định, trước đây now+23h59m mỗi lần render → vĩnh viễn); CountdownTimer thêm prop onEnd (gọi 1 lần khi diff=0); home-view + shop-view có state flashOver → ẨN TOÀN section/banner khi hết giờ
+- Đỏ nổi bật (giữ nền trắng): icon chips dịch vụ home + footer bg-red-50 text-red-600; social footer hover đỏ
+- E2E browser: login buifkhanh57 → menu hiện avatar B + tên + email + Tài khoản/Đăng xuất ✓; logout ok ✓; card Mua Hàng → trang chi tiết (heading đúng SP) ✓; Thêm vào giỏ → toast + drawer + Tiến hành thanh toán ✓; xóa SP khỏi giỏ (cleanup) ✓; lint sạch ✓
+
+Stage Summary:
+- Flow mua hàng chuẩn: Card "Mua Hàng" → trang chi tiết → "Thêm vào giỏ hàng"/"Mua ngay" → checkout
+- Flash sale có deadline thật (hôm nay 23:59:59), hết giờ tự ẩn, hôm sau chạy chu kỳ mới
+- Viền đen 1px (neutral-900/25) giúp card nổi trên nền trắng, siêu mỏng không xấu trên mobile
