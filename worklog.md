@@ -465,3 +465,27 @@ Stage Summary:
 - Toàn hệ thống (QR, checkout, payment, đơn hàng, webhook, AI agent, admin display, seed) dùng chung MỘT tài khoản: MB Bank 08660628189 — PHAM THI HAI YEN.
 - Production self-heal: ngay khi Vercel deploy bản mới, lần tải trang đầu tiên sẽ đồng bộ Setting ngân hàng trong Supabase về tài khoản mới (bankSync=repaired/created).
 - Lưu ý SePay: webhook chỉ ghi nhận tiền vào ĐÚNG số TK 08660628189; nếu trong dashboard SePay đang trỏ tài khoản test thì đổi về tài khoản thật này.
+
+---
+Task ID: 8
+Agent: Z.ai Code (main)
+Task: Migrate database sang project Supabase MỚI (bzlaulmrxnmaagsibzty) vì project cũ bị pause do 5 ngày không hoạt động; xuất danh sách env cần tạo/sửa trên Vercel.
+
+Work Log:
+- Điều tra: schema.prisma provider=postgresql (production), .env local sqlite; DB mới chỉ có IPv6 (db.<ref>.supabase.co → 2406:da18::) → sandbox lẫn Vercel functions đều không kết nối trực tiếp được → bắt buộc dùng Supavisor pooler. IPv6 prefix 2406:da18 = ap-southeast-1 (Singapore) — trùng region Vercel (sin1).
+- prisma db push (session pooler port 5432): schema sync thành công 4.42s.
+- Viết lại scripts/migrate-sqlite-to-postgres.js: (1) fix map model PascalCase → property camelCase (ProductVariant → productVariant, bản cũ tạo "productvariant" → undefined), (2) coerce SQLite Boolean 0/1 + DateTime epoch-millis qua information_schema của Postgres đích, (3) thêm ONLY_TABLES/SKIP_TABLES.
+- Migrate catalog: Category 6, Product 14, ProductVariant 30, ProductMedia 14, Voucher 3, Banner 3, Setting 1 (bank MB 08660628189 — PHAM THI HAI YEN in-sync). BlogPost 3 sau khi null authorId (FK — bảng User cố ý bỏ qua). Bỏ qua Order/Payment/Notification/SystemLog (dữ liệu test local).
+- Verify qua transaction pooler 6543 + pgbouncer=true (đúng kiểu connection Vercel sẽ dùng): counts đúng hết, createdAt là Date thật, bank setting đúng.
+- E2E app thật với DB mới (dev server + DATABASE_URL inline): / 200, 6 danh mục render, /api/keep-alive heartbeat ok (14 SP), /api/seed success (bankSync in-sync, 7 users gồm 5 admin shop auto-provision), /api/products trả 14 SP, agent-browser: home render → click Sofa AVH-300 → /san-pham/sofa-3-cho-fabric-xam-hien-dai-avh-300, navType "navigate", SEO title đầy đủ, giá hiện.
+- Chống pause TẬN GỌC: /api/keep-alive (GET, read-only, trả counts, 500 khi DB chết) + vercel.json crons [{path:"/api/keep-alive", schedule:"0 2 * * *"}] — 09:00 giờ VN hằng ngày, Supabase không bao giờ pause nữa.
+- Theo template Supabase trênboarding: cài @supabase/supabase-js 2.116.0 + @supabase/ssr 0.12.7; tạo src/lib/supabase/client.ts (browser) + server.ts (server, cookies() async chuẩn Next 16) — phục vụ Storage/Realtime/Auth sau này; Prisma vẫn là đường dữ liệu chính.
+- Cập nhật .env.example (placeholder) + DEPLOY.md (bảng env đầy đủ, cảnh báo port 6543, hướng dẫn migrate 3 bước). .env local: sqlite + NEXT_PUBLIC_SUPABASE_* thật (file gitignored).
+- Lesson: shell sandbox export sẵn DATABASE_URL=file:... toàn cục → override .env của Next (bằng chứng: loadEnvConfig trả về file:...) → mọi lần test DB khác phải truyền inline khi khởi động server.
+- Gate: tsc --noEmit sạch, eslint sạch, db:dev restore sqlite client, local home 200. Commit 78a84ac pushed → Vercel auto-deploy.
+
+Stage Summary:
+- DB mới bzlaulmrxnmaagsibzty (Singapore) ĐẦY DỮ LIỆU + SỐNG: schema + catalog + admin + bank setting MB.
+- Việc còn lại cho chủ shop: sửa DUY NHẤT DATABASE_URL trên Vercel sang pooler 6543 của project mới (giá trị trong báo cáo cho user) → redeploy → web sống lại.
+- Root cause đã xử lý: cron keep-alive hằng ngày giữ Supabase không bao giờ pause vì vắng khách.
+- Đơn hàng cũ ở project bị pause: restore project cũ trong dashboard Supabase nếu cần export lịch sử; catalog mới đã đầy đủ không phụ thuộc project cũ.
