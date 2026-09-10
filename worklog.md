@@ -509,3 +509,21 @@ Stage Summary:
 - Secret mới + scheme ký + code webhook ĐÃ CHỨNG MINH hoạt động (E2E local pass đủ 4 kịch bản: OK/ALREADY/MISMATCH/cleanup).
 - Việc còn lại 100% thuộc về chủ shop: Vercel → env SEPAY_WEBHOOK_SECRET = whsec_kIreeJXOj9T3cvkXZBK4giXF9bFQIUL8 → Save → Redeploy. Sau đó webhook SePay sẽ xác nhận đơn thật.
 - Production DB mới đã sống (heartbeat 14 SP, 0 đơn), có tool dọn đơn test trong repo.
+
+---
+Task ID: 10
+Agent: Z.ai Code (main)
+Task: Đổi domain sang noithatavh.info.vn — xác minh DNS, xác nhận URL webhook SePay, E2E trọn vòng trên domain mới.
+
+Work Log:
+- Domain check lần 1: root trỏ 75.2.60.5 (Netlify) → 404 Netlify; vercel.app 307 → domain mới (domain ĐÃ add trên Vercel làm primary).
+- DNS công cộng (1.1.1.1/8.8.8.8, NS ns1/ns2.tino.vn): root A đã đổi → 216.198.79.1 (Vercel ✅); www CNAME VẪN → frolicking-dragon-5bf286.netlify.app (Netlify ❌). Sandbox resolver còn cache cũ (75.2.60.5), /etc/hosts không ghi được (no root).
+- Qua IP pin (curl --resolve / https.request + SNI + Host): GET / 200 title "Nội Thất AVH", webhook GET 405, POST no-sig 401, keep-alive heartbeat ok (14 SP) → Vercel đang phục vụ domain mới.
+- Viết scripts/e2e-domain-pinned.ts (node:https, pin IP + SNI, bypass DNS cache): login → tạo đơn AVH972049 (2.980.000₫) → webhook ký secret whsec_kIree... → 200 OK "Confirm success" → DB PAID + PROCESSING → replay ALREADY → cleanup (orders left 0). ✅ PASS → CHỨNG MINH: domain mới hoạt động + SEPAY_WEBHOOK_SECRET mới đã cập nhật trên Vercel.
+- SEO surfaces (robots.txt/sitemap.xml) VẪN phát https://noithatinxo.vercel.app → NEXT_PUBLIC_SITE_URL chưa đổi; NEXTAUTH_URL cũng cần đổi; www record cần sửa CNAME → cname.vercel-dns.com.
+
+Stage Summary:
+- WEBHOOK URL CHÍNH THỨC: https://noithatavh.info.vn/api/payments/sepay/webhook — ĐÃ VERIFIED E2E PASS (tạo đơn thật → signed callback → PAID).
+- Secret SePay mới đã khớp Vercel env (webhook 200 thay vì 401).
+- Việc còn lại cho chủ shop: (1) sửa CNAME www → cname.vercel-dns.com; (2) env Vercel NEXT_PUBLIC_SITE_URL + NEXTAUTH_URL = https://noithatavh.info.vn → redeploy (SEO/sitemap/OAuth dùng domain mới).
+- Tool: e2e-domain-pinned.ts dùng được cho mọi domain sau này khi DNS sandbox cache cũ (PIN_IP + DOMAIN + SECRET + POOLER_URL).
