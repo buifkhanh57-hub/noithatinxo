@@ -95,21 +95,21 @@ export function Header() {
   return (
     <>
       {/* Announcement bar — text & links are admin-configurable */}
-      <div className="bg-primary text-primary-foreground">
+      <div className="border-b border-border/60 bg-background/70 text-foreground/80 backdrop-blur supports-[backdrop-filter]:bg-background/50">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 text-[11px] sm:text-xs">
           <p className="flex items-center gap-1.5 truncate">
-            <Phone className="h-3 w-3 shrink-0" />
+            <Phone className="h-3 w-3 shrink-0 text-muted-foreground" />
             <span className="truncate">{announcementText}</span>
           </p>
           <div className="hidden items-center gap-3 sm:flex">
             {showTracking && (
-              <button onClick={() => go('order-tracking')} className="hover:underline">
+              <button onClick={() => go('order-tracking')} className="transition-colors hover:text-foreground hover:underline">
                 Theo dõi đơn
               </button>
             )}
             {showTracking && showBlog && <span className="opacity-50">·</span>}
             {showBlog && (
-              <button onClick={() => go('blog')} className="hover:underline">
+              <button onClick={() => go('blog')} className="transition-colors hover:text-foreground hover:underline">
                 Cẩm nang
               </button>
             )}
