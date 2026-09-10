@@ -595,7 +595,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
               onClick={() => handleAddToCart(false)}
               disabled={outOfStock}
             >
-              <ShoppingCart className="h-5 w-5" /> Thêm vào giỏ
+              <ShoppingCart className="h-5 w-5" /> Mua Hàng
             </Button>
             <Button
               size="lg"
@@ -736,7 +736,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
           onClick={() => handleAddToCart(false)}
           disabled={outOfStock}
         >
-          <ShoppingCart className="h-5 w-5" /> {outOfStock ? 'Hết hàng' : 'Thêm vào giỏ'}
+          <ShoppingCart className="h-5 w-5" /> {outOfStock ? 'Hết hàng' : 'Mua Hàng'}
         </Button>
       </div>
       {/* spacer for sticky bar on mobile */}

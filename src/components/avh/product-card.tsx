@@ -198,7 +198,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
           disabled={!product.inStock}
         >
           <ShoppingCart className="h-4 w-4" />
-          Thêm vào giỏ
+          Mua Hàng
         </Button>
       </div>
     </Card>
