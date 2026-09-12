@@ -635,3 +635,22 @@ Work Log:
 Stage Summary:
 - Header giờ đúng yêu cầu: (1) phần đầu hiển thị như mẫu cũ nhưng nền gỗ — MENU + AVH + lưới danh mục Phòng Khách/Phòng Ngủ/Phòng Ăn/Tủ & Kệ/Văn Phòng/Đèn Trang Trí; (2) hotline 1900 1234 + Chat Zalo nằm trên thanh đỏ đầu trang (thay header quảng cáo); (3) chủ shop đổi số hotline/Zalo tại Quản trị → Cài đặt → Liên hệ, lưu là chạy ngay không cần deploy.
 - Lưu ý production (Supabase): hàng Setting cũ còn key announcement_text/show_* trong DB — không còn hiển thị, vô hại; có thể xoá tuỳ ý.
+
+---
+Task ID: 15
+Agent: Z.ai Code (main)
+Task: Nền gỗ bảng màu INOVAR chỉ hiện cho ADMIN (khách vẫn header trong suốt/trắng); XOÁ dải danh mục Phòng Khách/Phòng Ngủ/Phòng Ăn dưới header.
+
+Work Log:
+- Chọn swatch gỗ SỒI VÀNG (golden oak — hàng 4 cột 1) từ ảnh bảng màu sàn INOVAR khách gửi: ấm, hợp nội thất gỗ, không đụng đỏ thương hiệu. Crop bằng PIL (inset 4px tránh viền trắng) → upscale 3x → public/wood-oak-admin.jpg (546×534, avg #bfa37e).
+- globals.css: .wood-surface-admin = nền #bfa37e + veil kem 42–52% (vân gỗ THẤY RÕ khác .wood-surface veil 82%) + repeat-x 340px.
+- header.tsx: const isWood = user?.role === 'ADMIN'. Header: admin = wood-surface-admin + viền gỗ; KHÁCH (kể cả user thường) = bg-background/85 + backdrop-blur-md + border-b (trong suốt mờ như thiết kế cũ). Đồng bộ toàn bộ: icon nâu gỗ/đen mặc định, hover gỗ/accent, tên thương hiệu nâu gỗ/ĐỎ, input search viền gỗ/thường.
+- XOÁ nguyên section quick-nav (grid 4×2 mobile + row desktop "Lọc sản phẩm") — hết hẳn dải Phòng Khách/Phòng Ngủ… dưới header; dọn imports Armchair/Package/SlidersHorizontal + mobileCats/iconCls.
+- Menu 3 gạch: thêm "Tất cả sản phẩm" (chữ đỏ) ngay dưới Trang chủ — khách vẫn vào được trang shop.
+- Sự cố: dev server 500 khi login — schema.prisma = postgresql (bản cho Vercel) nhưng local cần SQLite → chạy `bun run db:dev` (push schema.dev.prisma + generate) → restart → login OK. Workflow đã ghi ở Task 7/8.
+- Browser E2E: admin desktop 1440 + mobile 390 → nền gỗ hiện rõ, chữ đọc tốt, nút Quản trị ✓; guest (session riêng) desktop + mobile → header trắng trong, KHÔNG gỗ, KHÔNG dải danh mục ✓; scroll → sticky trắng mờ đọc rõ ✓; menu có "Tất cả sản phẩm" + đủ danh mục ✓. Lint sạch.
+
+Stage Summary:
+- Admin đăng nhập = thấy vân gỗ sồi vàng (INOVAR) ở header; khách truy cập KHÔNG BAO GIỜ thấy gỗ — header trắng trong suốt mờ như cũ.
+- Dải Phòng Khách/Phòng Ngủ/Phòng Ăn dưới header đã XOÁ hoàn toàn (cả mobile + desktop); category còn ở menu 3 gạch + section "Danh mục nổi bật" trên trang chủ (giữ — là nội dung cửa hàng).
+- Commit b029c14 push → Vercel auto deploy.
