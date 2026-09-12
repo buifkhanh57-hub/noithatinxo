@@ -213,6 +213,18 @@
   background-repeat: repeat, repeat;
   background-position: center;
 }
+/* ADMIN-ONLY header wood — golden oak swatch (INOVAR bảng màu khách gửi,
+ * hàng 4 cột 1, public/wood-oak-admin.jpg). Veil mỏng hơn (≈45%) để vân gỗ
+ * THẤY RÕ, chữ nâu đậm vẫn đạt tương phản. Khách không bao giờ thấy lớp này. */
+.wood-surface-admin {
+  background-color: #bfa37e;
+  background-image:
+    linear-gradient(rgba(255, 250, 240, 0.42), rgba(255, 250, 240, 0.52)),
+    url('/wood-oak-admin.jpg');
+  background-size: auto, 340px 100%;
+  background-repeat: repeat, repeat-x;
+  background-position: center;
+}
 
 /* Smooth fade for view transitions — 60fps GPU-accelerated */
 @keyframes avh-fade-in {
