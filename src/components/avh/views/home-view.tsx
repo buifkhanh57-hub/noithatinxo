@@ -12,7 +12,7 @@ import { ProductCard, ProductListItem } from '@/components/avh/product-card'
 import { CountdownTimer } from '@/components/avh/countdown-timer'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowRight, Flame, Sparkles, Truck, ShieldCheck, Headphones, TrendingUp, Newspaper } from 'lucide-react'
+import { ArrowRight, Flame, Sparkles, TrendingUp, Newspaper } from 'lucide-react'
 import Image from 'next/image'
 import { formatVND } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -65,35 +65,13 @@ export function HomeView() {
       {/* Hero */}
       <HeroCarousel banners={banners ?? []} />
 
-      {/* Quick service highlights */}
-      <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { icon: Truck, title: 'Giao toàn quốc', sub: 'Free ship 3tr+' },
-          { icon: ShieldCheck, title: 'Bảo hành 24-36T', sub: 'Chính hãng AVH' },
-          { icon: Flame, title: 'Flash sale cuối tuần', sub: 'Giảm đến 35%' },
-          { icon: Headphones, title: 'Hỗ trợ 24/7', sub: 'Trợ Lý AVH' },
-        ].map((s, i) => (
-          <div key={i} className="flex items-center gap-2.5 rounded-lg border bg-card p-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
-              <s.icon className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-xs font-semibold sm:text-sm">{s.title}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{s.sub}</p>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* MENU — đúng yêu cầu chủ shop: CHỈ ĐỔI TIÊU ĐỀ thành "MENU nổi bật"
-          (chữ MENU trong ô đỏ, giống hệt ảnh mẫu Khoa gửi), giữ nguyên ô ảnh +
-          tên danh mục như thiết kế ban đầu
-          (3 cột mobile / 6 cột desktop, ảnh vuông + tên bên dưới). */}
+      {/* MENU — chủ shop dặn: tên chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật",
+          và BỎ hẳn dải 4 ô ưu đãi (Giao toàn quốc…) ở đầu trang.
+          Giữ nguyên lưới ảnh danh mục (3 cột mobile / 6 cột desktop). */}
       <section className="mt-8">
         <div className="mb-3">
           <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
             <span className="rounded-md bg-red-600 px-2 py-0.5 uppercase tracking-wide text-white shadow-sm">MENU</span>
-            <span>nổi bật</span>
           </h2>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Duyệt theo không gian sống</p>
         </div>
