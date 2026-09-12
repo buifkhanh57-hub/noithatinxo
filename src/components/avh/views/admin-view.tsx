@@ -47,7 +47,6 @@ import {
   Phone,
   Share2,
   Truck,
-  Megaphone,
   AlignLeft,
   Store,
   FolderPlus,
@@ -2138,8 +2137,8 @@ function ReviewsTab() {
 }
 
 /* ----------------------------------------------------------------------------
- * Settings tab — full site configuration (branding, contact, social,
- * announcement bar, shipping policy, footer).
+ * Settings tab — full site configuration (branding, contact/hotline/zalo,
+ * social, shipping policy, footer).
  * ------------------------------------------------------------------------- */
 
 // group id -> icon mapping (mirrors lib/settings.ts SETTING_GROUPS)
@@ -2147,16 +2146,14 @@ const GROUP_ICONS: Record<string, React.ComponentType<{ className?: string }>> =
   branding: Store,
   contact: Phone,
   social: Share2,
-  announcement: Megaphone,
   shipping: Truck,
   payment: CreditCard,
   footer: AlignLeft,
 }
 const GROUP_LABELS: Record<string, string> = {
   branding: 'Thương hiệu',
-  contact: 'Liên hệ',
+  contact: 'Liên hệ (Hotline + Zalo)',
   social: 'Mạng xã hội',
-  announcement: 'Quảng cáo header',
   shipping: 'Chính sách giao hàng',
   payment: 'Thanh toán & Ngân hàng',
   footer: 'Footer',
@@ -2254,8 +2251,8 @@ function SettingsTab() {
           <Settings className="h-4 w-4 text-primary" /> Cài đặt website
         </CardTitle>
         <CardDescription>
-          Mọi thiết lập ở đây — logo, hotline, link Facebook/Zalo, quảng cáo header, chính sách giao hàng, footer —
-          đều cập nhật trực tiếp lên website sau khi lưu.
+          Mọi thiết lập ở đây — logo, hotline, số Zalo, link mạng xã hội, chính sách giao hàng, footer —
+          đều cập nhật trực tiếp lên website sau khi lưu. Hotline &amp; Zalo hiện ngay trên thanh đỏ đầu trang.
         </CardDescription>
       </CardHeader>
       <CardContent>

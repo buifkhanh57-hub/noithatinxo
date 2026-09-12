@@ -61,14 +61,11 @@ export function Header() {
   const user = useAuthStore((s) => s.user)
   const mounted = useMounted()
   const settings = useSettingsStore()
-  const announcementText = settings.get('announcement_text')
   const brandName = settings.get('brand_name')
   const brandTagline = settings.get('brand_tagline')
   const brandLogoUrl = settings.get('brand_logo_url')
   const hotline = settings.get('contact_hotline')
   const zalo = settings.get('social_zalo')
-  const showTracking = settings.get('announcement_show_tracking') === 'true'
-  const showBlog = settings.get('announcement_show_blog') === 'true'
 
   const [searchValue, setSearchValue] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
@@ -111,26 +108,35 @@ export function Header() {
 
   return (
     <>
-      {/* Announcement bar — text & links are admin-configurable */}
+      {/* Thanh trên cùng — Hotline + Chat Zalo (thay cho header quảng cáo).
+          Số hotline / số Zalo chỉnh trong Quản trị → Cài đặt → Liên hệ. */}
       <div className="bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 text-[11px] sm:text-xs">
-          <p className="flex items-center gap-1.5 truncate">
-            <Phone className="h-3 w-3 shrink-0" />
-            <span className="truncate">{announcementText}</span>
-          </p>
-          <div className="hidden items-center gap-3 sm:flex">
-            {showTracking && (
-              <button onClick={() => go('order-tracking')} className="hover:underline">
-                Theo dõi đơn
-              </button>
-            )}
-            {showTracking && showBlog && <span className="opacity-50">·</span>}
-            {showBlog && (
-              <button onClick={() => go('blog')} className="hover:underline">
-                Cẩm nang
-              </button>
-            )}
-          </div>
+          {hotline ? (
+            <a
+              href={`tel:${hotline.replace(/\s/g, '')}`}
+              className="flex min-w-0 items-center gap-1.5 font-bold transition hover:underline"
+              aria-label={`Gọi tư vấn ${hotline}`}
+            >
+              <Phone className="h-3 w-3 shrink-0" />
+              <span className="truncate">Hotline: {hotline}</span>
+              <span className="hidden font-medium opacity-90 md:inline">— Gọi tư vấn &amp; lắp đặt</span>
+            </a>
+          ) : (
+            <span />
+          )}
+          {zalo && (
+            <a
+              href={zaloHref(zalo)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex shrink-0 items-center gap-1.5 font-bold transition hover:underline"
+              aria-label="Chat Zalo với Nội Thất AVH"
+            >
+              <MessageCircle className="h-3.5 w-3.5 shrink-0" />
+              Chat Zalo
+            </a>
+          )}
         </div>
       </div>
 
@@ -477,39 +483,6 @@ export function Header() {
               Lọc sản phẩm
             </button>
           </nav>
-        </div>
-      </section>
-
-      {/* ---- Red contact strip: SDT + Zalo (yêu cầu "thêm phần sdt và zalo") ---- */}
-      <section aria-label="Liên hệ tư vấn" className="bg-primary text-primary-foreground">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-4">
-          <a
-            href={`tel:${(hotline || '').replace(/\s/g, '')}`}
-            className="flex min-w-0 items-center gap-2 text-xs font-bold sm:text-sm"
-            aria-label={`Gọi tư vấn ${hotline}`}
-          >
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 sm:h-7 sm:w-7">
-              <Phone className="h-3.5 w-3.5" />
-            </span>
-            <span className="truncate">
-              {hotline}
-              <span className="ml-1.5 hidden font-medium opacity-90 sm:inline">— Gọi Tư Vấn</span>
-            </span>
-          </a>
-          {zalo && (
-            <a
-              href={zaloHref(zalo)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex shrink-0 items-center gap-2 text-xs font-bold sm:text-sm"
-              aria-label="Chat Zalo"
-            >
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 sm:h-7 sm:w-7">
-                <MessageCircle className="h-3.5 w-3.5" />
-              </span>
-              Chat Zalo
-            </a>
-          )}
         </div>
       </section>
 

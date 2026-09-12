@@ -23,23 +23,18 @@ export const SETTING_DEFS: SettingDef[] = [
   { key: 'brand_logo_url', label: 'Logo (URL hoặc upload)', group: 'branding', type: 'image', defaultValue: '', help: 'Để trống nếu dùng chữ AVH mặc định' },
   { key: 'brand_description', label: 'Mô tả thương hiệu (footer)', group: 'branding', type: 'textarea', defaultValue: 'Nội Thất AVH chuyên cung cấp nội thất và phụ kiện trang trí nhà cửa với thiết kế hiện đại, chất lượng đảm bảo và dịch vụ hậu mãi tận tâm. Tầm nhìn: mỗi gia đình Việt đều có một tổ ấm đẹp, ấm áp và đúng gu.' },
 
-  // --- Contact ---
-  { key: 'contact_hotline', label: 'Hotline', group: 'contact', type: 'text', defaultValue: '1900 1234' },
+  // --- Contact (hotline + Zalo hiện trên thanh đỏ đầu trang) ---
+  { key: 'contact_hotline', label: 'Hotline', group: 'contact', type: 'text', defaultValue: '1900 1234', help: 'Hiện bên trái thanh đỏ đầu trang — khách bấm là gọi. Bỏ số sẽ ẩn phần hotline.' },
+  { key: 'social_zalo', label: 'Số Zalo nhận tin nhắn', group: 'contact', type: 'text', defaultValue: '0938123456', help: 'Tạo nút "Chat Zalo" bên phải thanh đầu trang (zalo.me/<số>). Có thể nhập link zalo.me đầy đủ. Để trống để ẩn nút.' },
   { key: 'contact_email', label: 'Email', group: 'contact', type: 'text', defaultValue: 'hello@noithat-avh.vn' },
   { key: 'contact_address', label: 'Địa chỉ cửa hàng', group: 'contact', type: 'text', defaultValue: '123 Lê Lợi, Q.1, TP. Hồ Chí Minh' },
   { key: 'contact_working_hours', label: 'Giờ làm việc', group: 'contact', type: 'text', defaultValue: 'Thứ 2 - Chủ nhật: 8:00 - 20:00' },
 
   // --- Social ---
   { key: 'social_facebook', label: 'Facebook URL', group: 'social', type: 'url', defaultValue: 'https://facebook.com/noithat-avh' },
-  { key: 'social_zalo', label: 'Zalo (số hoặc link)', group: 'social', type: 'text', defaultValue: '0938123456' },
   { key: 'social_instagram', label: 'Instagram URL', group: 'social', type: 'url', defaultValue: 'https://instagram.com/noithat-avh' },
   { key: 'social_youtube', label: 'YouTube URL', group: 'social', type: 'url', defaultValue: 'https://youtube.com/@noithat-avh' },
   { key: 'social_tiktok', label: 'TikTok URL', group: 'social', type: 'url', defaultValue: '' },
-
-  // --- Announcement bar (top of header) ---
-  { key: 'announcement_text', label: 'Nội dung quảng cáo header', group: 'announcement', type: 'text', defaultValue: 'Hotline 1900 1234 · Miễn phí ship cho đơn từ 3 triệu', help: 'Dòng chữ chạy ở thanh trên cùng website' },
-  { key: 'announcement_show_tracking', label: 'Hiện nút "Theo dõi đơn" ở header', group: 'announcement', type: 'boolean', defaultValue: 'true' },
-  { key: 'announcement_show_blog', label: 'Hiện nút "Cẩm nang" ở header', group: 'announcement', type: 'boolean', defaultValue: 'true' },
 
   // --- Shipping policy (used in trust badges + checkout) ---
   { key: 'shipping_free_threshold', label: 'Ngưỡng miễn phí ship (₫)', group: 'shipping', type: 'number', defaultValue: '3000000', help: 'Đơn đạt giá trị này sẽ miễn phí ship (các thành phố lớn)' },
@@ -74,9 +69,8 @@ export const SETTING_DEFS: SettingDef[] = [
 
 export const SETTING_GROUPS: { id: string; label: string; icon: string }[] = [
   { id: 'branding', label: 'Thương hiệu', icon: 'Store' },
-  { id: 'contact', label: 'Liên hệ', icon: 'Phone' },
+  { id: 'contact', label: 'Liên hệ (Hotline + Zalo)', icon: 'Phone' },
   { id: 'social', label: 'Mạng xã hội', icon: 'Share2' },
-  { id: 'announcement', label: 'Quảng cáo header', icon: 'Megaphone' },
   { id: 'shipping', label: 'Chính sách giao hàng', icon: 'Truck' },
   { id: 'payment', label: 'Thanh toán & Ngân hàng', icon: 'Wallet' },
   { id: 'footer', label: 'Footer', icon: 'AlignLeft' },
