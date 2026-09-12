@@ -99,10 +99,11 @@ export function Header() {
   }, [])
 
   /* Nền gỗ CHỈ hiện cho ADMIN (user?.role === 'ADMIN') theo yêu cầu chủ shop:
-     khách truy cập luôn thấy header trắng mờ trong suốt như cũ. */
+     khách truy cập luôn thấy header trắng mờ trong suốt như cũ.
+     Admin: nền gỗ óc chó sậm + chữ/icon KEM TRẮNG để logo & nội dung thật sự nổi bật. */
   const isWood = user?.role === 'ADMIN'
-  const actionHover = isWood ? 'hover:bg-[#e6d3b4]/60' : 'hover:bg-accent'
-  const iconColor = isWood ? 'text-[#5c3a17]' : 'text-foreground'
+  const actionHover = isWood ? 'hover:bg-white/12' : 'hover:bg-accent'
+  const iconColor = isWood ? 'text-[#f3e7d3]' : 'text-foreground'
 
   return (
     <>
@@ -138,13 +139,13 @@ export function Header() {
         </div>
       </div>
 
-      {/* Main header — ADMIN: vân gỗ sồi vàng (bảng màu INOVAR khách chọn);
+      {/* Main header — ADMIN: gỗ óc chó sậm sang trọng, chữ kem nổi rõ;
           KHÁCH: trắng mờ trong suốt (backdrop-blur) như thiết kế cũ */}
       <header
         className={cn(
           'sticky top-0 z-40 w-full',
           isWood
-            ? 'wood-surface-admin border-b-2 border-[#b98a4e]/40 shadow-[0_1px_3px_rgba(87,52,21,0.18)]'
+            ? 'wood-surface-admin border-b border-black/40 shadow-[0_2px_10px_rgba(0,0,0,0.35)]'
             : 'border-b border-border/70 bg-background/85 shadow-[0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-md',
         )}
       >
@@ -289,7 +290,12 @@ export function Header() {
             ) : (
               <span
                 aria-hidden
-                className="select-none text-2xl font-black italic leading-none tracking-tighter text-primary drop-shadow-sm sm:text-3xl"
+                className={cn(
+                  'select-none text-2xl font-black italic leading-none tracking-tighter drop-shadow-sm sm:text-3xl',
+                  isWood
+                    ? 'text-[#f7ecd8] drop-shadow-[0_2px_4px_rgba(0,0,0,0.65)]'
+                    : 'text-primary',
+                )}
               >
                 AVH
               </span>
@@ -298,7 +304,9 @@ export function Header() {
               <span
                 className={cn(
                   'truncate text-sm font-extrabold uppercase tracking-tight sm:text-base',
-                  isWood ? 'text-[#4a2f12]' : 'text-primary',
+                  isWood
+                    ? 'text-[#fdf6ea] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                    : 'text-primary',
                 )}
               >
                 {brandName.toUpperCase()}
@@ -306,7 +314,7 @@ export function Header() {
               <span
                 className={cn(
                   'max-w-[130px] truncate text-[9px] font-semibold uppercase tracking-wider sm:max-w-none sm:text-[10px]',
-                  isWood ? 'text-[#5c3a17]' : 'text-muted-foreground',
+                  isWood ? 'text-[#d9c5a5]' : 'text-muted-foreground',
                 )}
               >
                 {brandTagline}
@@ -316,7 +324,7 @@ export function Header() {
 
           {/* Search (desktop) */}
           <form onSubmit={handleSearch} className="relative mx-auto hidden w-full max-w-xl md:block">
-            <Search className={cn('pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2', isWood ? 'text-[#8a5a26]' : 'text-muted-foreground')} />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="avh-search-input"
               value={searchValue}
@@ -324,7 +332,7 @@ export function Header() {
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
               placeholder="Tìm sofa, giường, đèn trang trí… (ấn / để focus)"
-              className={cn('h-10 pl-9 pr-4', isWood && 'border-[#c9a06a] bg-white/95 placeholder:text-[#a98a63]')}
+              className={cn('h-10 pl-9 pr-4', isWood && 'border-white/30 bg-white/95 shadow-md placeholder:text-stone-400')}
               aria-label="Tìm kiếm sản phẩm"
             />
             {searchFocused && searchValue && categories && (
@@ -442,14 +450,14 @@ export function Header() {
 
         {/* Mobile search bar */}
         {mobileSearchOpen && (
-          <div className={cn('border-t px-3 py-2 md:hidden', isWood ? 'border-[#c9a06a]/40' : 'border-border')}>
+          <div className={cn('border-t px-3 py-2 md:hidden', isWood ? 'border-white/15' : 'border-border')}>
             <form onSubmit={handleSearch} className="relative">
-              <Search className={cn('pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2', isWood ? 'text-[#8a5a26]' : 'text-muted-foreground')} />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 placeholder="Tìm sản phẩm…"
-                className={cn('h-9 pl-9 pr-9', isWood && 'border-[#c9a06a] bg-white/95')}
+                className={cn('h-9 pl-9 pr-9', isWood && 'border-white/30 bg-white/95')}
                 autoFocus
               />
               <button

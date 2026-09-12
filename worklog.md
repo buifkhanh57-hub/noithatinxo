@@ -671,3 +671,21 @@ Stage Summary:
 - Header admin = ảnh chụp vân gỗ sồi thật (AI, không ghép seams); khách không đổi.
 - Asset: public/wood-real-oak-3.jpg (82KB); các file swatch/texture cũ đã xoá.
 - Commit push → Vercel auto deploy.
+
+---
+Task ID: 17
+Agent: Z.ai Code (main)
+Task: Chủ shop chê texture sồi vàng "nhìn cứ khó chịu và khó nhìn quá, mất hết sự nổi bật" (header vàng nhạt sọc dày, chữ chìm vào nền) → thiết kế lại toàn bộ header admin.
+
+Work Log:
+- Chẩn đoán: texture sồi vàng nhạt + vân sọc dày đặc gây rối mắt; chữ/logo nâu đậm trên nền vàng nhạt = tương phản thấp, mất điểm nhấn.
+- Hướng mới: gỗ ÓC CHÓ SẬM cao cấp (dark walnut espresso) + chữ/icon KEM TRẮNG — kiểu header nội thất cao cấp: nền sâu dịu mắt, nội dung thật sự nổi bật.
+- Sinh texture mới (z-ai image 1344x768): "dark walnut, grain horizontal, espresso brown + caramel highlights" → chỉnh PIL (Color 1.08, Contrast 1.04, Brightness 0.97) → public/wood-admin-walnut.jpg (206KB, avg #55301e).
+- CSS .wood-surface-admin mới: background-size cover + no-repeat (vân giữ tỉ lệ thật, không xé mép), position center 45%, lớp phủ tối gradient nhẹ 8–38% đảm bảo chữ kem tương phản ~12:1 (AAA). Xoá .wood-surface / .wood-surface-soft cũ (đã không còn nơi dùng).
+- header.tsx bảng màu admin mới: icon/menu #f3e7d3, AVH + tên brand #f7ecd8/#fdf6ea + drop-shadow, tagline #d9c5a5, hover bg-white/12, viền dưới border-black/40 + shadow sâu hơn; search input bg trắng + border-white/30. Guest giữ nguyên 100%.
+- Verify agent-browser: admin desktop 1440 (gỗ óc chó rõ vân, chữ kem nổi) + mobile 390 OK; guest desktop → bg-white/85 + blur(12px), không có class gỗ; errors rỗng. Lint sạch.
+
+Stage Summary:
+- Header admin: gỗ óc chó sậm sang trọng + chữ kem trắng — hết "khó chịu", logo/nội dung nổi bật rõ; khách không đổi (trắng trong suốt).
+- Asset: public/wood-admin-walnut.jpg (206KB); đã xoá wood-real-oak-3.jpg, wood-header.jpg, wood-oak-admin.jpg.
+- Commit push → Vercel auto deploy.

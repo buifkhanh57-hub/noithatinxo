@@ -44,9 +44,9 @@
 }
 
 /*
-  Nội Thất AVH brand palette — white base + red accents + wood grain header.
+  Nội Thất AVH brand palette — white base + red accents.
   Primary: confident brand red (prices, CTAs, badges)
-  Header/quick-nav: light oak wood grain texture
+  Admin header: premium dark walnut wood texture (admin-only)
   No indigo/blue per project rules.
 */
 :root {
@@ -189,46 +189,27 @@
 .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ----------------------------------------------------------------------------
- * Wood-grain header texture — light oak surface used by the main header and
- * the quick category nav (Anh Khoa style). The .wood-surface layer stacks:
- *   1. the wood photo (public/wood-header.jpg)
- *   2. a warm cream veil so text stays readable (WCAG) on any screen
+ * ADMIN-ONLY header wood — premium dark walnut (gỗ óc chó), vân ngang thật,
+ * AI-generated photorealistic texture (public/wood-admin-walnut.jpg, 1344×768).
+ * `cover` + no-repeat: vân gỗ giữ tỉ lệ thật, không bị kéo giật/ghép mảnh.
+ * Lớp phủ tối nhẹ giúp nền sâu dịu mắt; chữ kem/trắng tương phản ~12:1 (WCAG AAA)
+ * và logo/nút bấm thật sự NỔI trên nền gỗ. Khách không bao giờ thấy lớp này
+ * (header.tsx chỉ áp cho role ADMIN).
  * ------------------------------------------------------------------------- */
-.wood-surface {
-  background-color: #e8d9c3;
-  background-image:
-    linear-gradient(rgba(253, 249, 241, 0.82), rgba(253, 249, 241, 0.82)),
-    url('/wood-header.jpg');
-  background-size: auto, 480px auto;
-  background-repeat: repeat, repeat;
-  background-position: center;
-}
-/* Stronger veil variant — for the quick-nav strip where many small labels sit */
-.wood-surface-soft {
-  background-color: #f0e6d6;
-  background-image:
-    linear-gradient(rgba(253, 249, 241, 0.9), rgba(253, 249, 241, 0.9)),
-    url('/wood-header.jpg');
-  background-size: auto, 480px auto;
-  background-repeat: repeat, repeat;
-  background-position: center;
-}
-/* ADMIN-ONLY header wood — vân gỗ sồi thật (AI, vùng cathedral grain nổi rõ,
- * không ghép mảnh). Veil siêu nhạt để gỗ hiện như thật; chữ nâu đậm vẫn đọc rõ.
- * Khách không bao giờ thấy lớp này (header.tsx chỉ áp cho role ADMIN). */
 .wood-surface-admin {
-  background-color: #c8a273;
+  background-color: #4a2a18;
   background-image:
     linear-gradient(
       to bottom,
-      rgba(255, 250, 240, 0.2),
-      rgba(255, 250, 240, 0.06) 45%,
-      rgba(255, 250, 240, 0.04) 70%,
-      rgba(80, 46, 14, 0.18)
+      rgba(12, 6, 2, 0.26),
+      rgba(12, 6, 2, 0.08) 38%,
+      rgba(12, 6, 2, 0.14) 72%,
+      rgba(8, 4, 1, 0.38)
     ),
-    url('/wood-real-oak-3.jpg');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
+    url('/wood-admin-walnut.jpg');
+  background-size: auto, cover;
+  background-position: center, center 45%;
+  background-repeat: repeat, no-repeat;
 }
 
 /* Smooth fade for view transitions — 60fps GPU-accelerated */
