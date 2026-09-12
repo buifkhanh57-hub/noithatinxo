@@ -85,11 +85,18 @@ export function HomeView() {
         ))}
       </section>
 
-      {/* MENU — đúng yêu cầu chủ shop: CHỈ ĐỔI TIÊU ĐỀ thành "MENU",
-          giữ nguyên ô ảnh + tên danh mục như thiết kế ban đầu
+      {/* MENU — đúng yêu cầu chủ shop: CHỈ ĐỔI TIÊU ĐỀ thành "MENU nổi bật"
+          (chữ MENU trong ô đỏ, giống hệt ảnh mẫu Khoa gửi), giữ nguyên ô ảnh +
+          tên danh mục như thiết kế ban đầu
           (3 cột mobile / 6 cột desktop, ảnh vuông + tên bên dưới). */}
       <section className="mt-8">
-        <SectionHeader title="MENU" subtitle="Duyệt theo không gian sống" />
+        <div className="mb-3">
+          <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
+            <span className="rounded-md bg-red-600 px-2 py-0.5 uppercase tracking-wide text-white shadow-sm">MENU</span>
+            <span>nổi bật</span>
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Duyệt theo không gian sống</p>
+        </div>
         {!mounted || !categories ? (
           <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}

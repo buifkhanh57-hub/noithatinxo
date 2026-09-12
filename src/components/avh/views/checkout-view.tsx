@@ -290,9 +290,12 @@ export function CheckoutView() {
     // không biết → cứ bấm nút mù quáng. Giờ đây cuộn THẲNG đến ô bị lỗi
     // và viền đỏ để khách thấy ngay phải sửa gì.
     if (firstField) {
+      // TS narrowing is lost inside the setTimeout closure (mutable `let`
+      // captured by callback) → pin to a const first.
+      const targetField: string = firstField
       setTimeout(() => {
         document
-          .getElementById(firstField)
+          .getElementById(targetField)
           ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 60)
     }
