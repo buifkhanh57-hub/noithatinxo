@@ -85,25 +85,39 @@ export function HomeView() {
         ))}
       </section>
 
-      {/* MENU — lưới danh mục kiểu anhkhoa: ô tên gọn, 4 cột mobile,
-          hover đổi đỏ thương hiệu */}
+      {/* MENU — đúng yêu cầu chủ shop: CHỈ ĐỔI TIÊU ĐỀ thành "MENU",
+          giữ nguyên ô ảnh + tên danh mục như thiết kế ban đầu
+          (3 cột mobile / 6 cột desktop, ảnh vuông + tên bên dưới). */}
       <section className="mt-8">
-        <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide sm:text-xl">MENU</h2>
+        <SectionHeader title="MENU" subtitle="Duyệt theo không gian sống" />
         {!mounted || !categories ? (
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
+          <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
           </div>
         ) : (
           <nav aria-label="Danh mục sản phẩm">
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+            <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
               {categories.map((c) => (
                 <a
                   key={c.id}
                   href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
-                  className="flex min-h-[52px] items-center justify-center rounded-lg border bg-card px-2 py-2.5 text-center text-xs font-semibold leading-snug text-foreground transition hover:border-primary hover:bg-primary hover:text-primary-foreground sm:text-sm"
+                  className="group flex flex-col items-center gap-2 text-center"
                   title={c.name}
                 >
-                  <span className="line-clamp-2">{c.name}</span>
+                  <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted">
+                    {c.imageUrl ? (
+                      <Image
+                        src={c.imageUrl}
+                        alt={c.name}
+                        fill
+                        sizes="(max-width: 640px) 33vw, 160px"
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-2xl">🪑</div>
+                    )}
+                  </div>
+                  <p className="line-clamp-1 text-xs font-medium sm:text-sm group-hover:text-primary">{c.name}</p>
                 </a>
               ))}
             </div>

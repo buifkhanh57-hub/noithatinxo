@@ -18,7 +18,6 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
@@ -174,26 +173,27 @@ export function AccountView() {
           </Card>
         </aside>
 
-        {/* Mobile tab bar */}
-        <div className="-mx-3 px-3 lg:hidden">
-          <ScrollArea className="w-full">
-            <div className="flex w-max gap-1.5 pb-1">
-              {TABS.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
-                    tab === t.key
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  <t.icon className="h-3.5 w-3.5" />
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </ScrollArea>
+        {/* Mobile tab bar — dùng overflow-x NATIVE.
+            ⚠️ KHÔNG dùng Radix ScrollArea ở đây: wrapper display:table của nó
+            cùng w-max làm TRÀN CẢ TRANG trên mobile (scrollWidth ~800px thay
+            vì 390px) → chủ shop gọi là "trang bị to ra". */}
+        <div className="-mx-3 overflow-x-auto px-3 pb-1 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-1.5">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
+                  tab === t.key
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                <t.icon className="h-3.5 w-3.5" />
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Main content */}

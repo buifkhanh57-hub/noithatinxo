@@ -334,7 +334,7 @@ export function AvhShell({ route }: { route?: ShellRoute }) {
   const fallback = <ViewFallback label="Đang tải…" />
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-background">
       <Header />
       <main className="flex-1">
         {/* Render views IMMEDIATELY on first render — no `seeded` gate.

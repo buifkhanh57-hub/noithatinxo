@@ -279,19 +279,22 @@ export function Header() {
             </SheetContent>
           </Sheet>
 
-          {/* Brand — logo + name + tagline, luôn hiển thị cả mobile */}
+          {/* Brand — logo + name + tagline, luôn hiển thị cả mobile.
+              KHÔNG dùng shrink-0 cho cả khối: trên mobile 390px header bị
+              tràn 22px (nút giỏ hàng bị cắt mất mép phải) → cho phần chữ
+              co/truncate còn logo giữ nguyên. */}
           <button
             onClick={() => go('home')}
-            className="flex min-w-0 shrink-0 items-center gap-2"
+            className="flex min-w-0 items-center gap-2"
             aria-label={`Trang chủ ${brandName}`}
           >
             {brandLogoUrl ? (
-              <img src={brandLogoUrl} alt={brandName} className="h-9 w-auto sm:h-11" />
+              <img src={brandLogoUrl} alt={brandName} className="h-9 w-auto shrink-0 sm:h-11" />
             ) : (
               <span
                 aria-hidden
                 className={cn(
-                  'select-none text-2xl font-black italic leading-none tracking-tighter drop-shadow-sm sm:text-3xl',
+                  'shrink-0 select-none text-2xl font-black italic leading-none tracking-tighter drop-shadow-sm sm:text-3xl',
                   isWood
                     ? 'text-[#f7ecd8] drop-shadow-[0_2px_4px_rgba(0,0,0,0.65)]'
                     : 'text-primary',
@@ -369,7 +372,7 @@ export function Header() {
           </form>
 
           {/* Actions */}
-          <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
             <Button
               variant="ghost"
               size="icon"
@@ -472,6 +475,34 @@ export function Header() {
           </div>
         )}
       </header>
+
+      {/* MENU BAR — thanh menu danh mục nằm ở ĐẦU TRANG, ngay dưới header
+          (theo ảnh mẫu chủ shop gửi kèm: menu ngang ở đầu trang, KHÔNG phải
+          thay thế section danh mục ở giữa trang chủ).
+          Mobile: cuộn ngang, ẩn scrollbar cho gọn. */}
+      <nav aria-label="MENU danh mục sản phẩm" className="border-b border-border/70 bg-card">
+        <div className="mx-auto flex max-w-7xl items-stretch overflow-x-auto px-2 [scrollbar-width:none] sm:px-4 [&::-webkit-scrollbar]:hidden">
+          <span className="mr-1 flex shrink-0 items-center gap-1.5 border-r border-border/70 pr-2.5 text-xs font-extrabold uppercase tracking-wide text-primary sm:text-sm">
+            <Menu className="h-4 w-4" strokeWidth={2.5} />
+            Menu
+          </span>
+          <button
+            onClick={() => go('shop')}
+            className="shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/85 transition hover:text-primary sm:text-sm"
+          >
+            Tất cả sản phẩm
+          </button>
+          {categories?.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => go('shop', { cat: c.slug })}
+              className="shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/85 transition hover:text-primary sm:text-sm"
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      </nav>
 
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </>

@@ -144,6 +144,7 @@ export function CheckoutView() {
 
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({})
   const [form, setForm] = useState<ShippingForm>({
     name: user?.name || '',
     phone: '',
@@ -224,6 +225,14 @@ export function CheckoutView() {
     }
   }, [savedAddresses, selectedAddressId])
 
+  // MOBILE FIX: khi chuyển bước (Tiếp tục / Quay lại), cuộn lên ĐẦU trang
+  // để khách thấy nội dung của bước mới. Trước đây trang cứ đứng y ở đáy
+  // (nơi có nút bấm) → khách phải tự cuộn lên, không biết thì cứ ấn nút.
+  // NOTE: phải đặt trước mọi early-return để giữ thứ tự hook ổn định.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [step])
+
   // Empty cart → show empty state with back-to-cart link
   if (items.length === 0) {
     return (
@@ -255,15 +264,39 @@ export function CheckoutView() {
   }
 
   const validateStep1 = () => {
-    if (!form.name.trim()) return 'Vui lòng nhập họ và tên'
+    const invalid: Record<string, boolean> = {}
+    let firstMessage: string | null = null
+    let firstField: string | null = null
+    const mark = (key: string, message: string) => {
+      invalid[key] = true
+      if (!firstMessage) {
+        firstMessage = message
+        firstField = key
+      }
+    }
+    if (!form.name.trim()) mark('name', 'Vui lòng nhập họ và tên')
     const phone = form.phone.trim()
     if (!/^0\d{9}$/.test(phone))
-      return 'Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)'
-    if (!form.province) return 'Vui lòng chọn tỉnh/thành phố'
-    if (!form.district.trim()) return 'Vui lòng nhập quận/huyện'
-    if (!form.ward.trim()) return 'Vui lòng nhập phường/xã'
-    if (!form.detail.trim()) return 'Vui lòng nhập số nhà, tên đường'
-    return null
+      mark('phone', 'Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)')
+    if (!form.province) mark('province', 'Vui lòng chọn tỉnh/thành phố')
+    if (!form.district.trim()) mark('district', 'Vui lòng nhập quận/huyện')
+    if (!form.ward.trim()) mark('ward', 'Vui lòng nhập phường/xã')
+    if (!form.detail.trim()) mark('detail', 'Vui lòng nhập số nhà, tên đường')
+
+    setFieldErrors(invalid)
+
+    // MOBILE FIX: khi bấm "Tiếp tục" mà form thiếu thông tin, khách đang
+    // đứng ở ĐÁY trang (nơi có nút bấm) — chỉ toast trên đầu thì khách
+    // không biết → cứ bấm nút mù quáng. Giờ đây cuộn THẲNG đến ô bị lỗi
+    // và viền đỏ để khách thấy ngay phải sửa gì.
+    if (firstField) {
+      setTimeout(() => {
+        document
+          .getElementById(firstField)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 60)
+    }
+    return firstMessage
   }
 
   const next = () => {
@@ -279,6 +312,12 @@ export function CheckoutView() {
   const back = () => {
     if (step > 1) setStep(step - 1)
     else setView('cart')
+  }
+
+  // Cập nhật 1 ô nhập + tự xoá viền đỏ của ô đó khi khách bắt đầu sửa
+  const update = (key: keyof ShippingForm, value: string) => {
+    setForm((f) => ({ ...f, [key]: value }))
+    setFieldErrors((e) => (e[key] ? { ...e, [key]: false } : e))
   }
 
   const submitOrder = async () => {
@@ -480,10 +519,10 @@ export function CheckoutView() {
                   <Input
                     id="name"
                     value={form.name}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, name: e.target.value }))
-                    }
+                    onChange={(e) => update('name', e.target.value)}
                     placeholder="Nguyễn Văn A"
+                    aria-invalid={!!fieldErrors.name}
+                    className={fieldErrors.name ? 'border-destructive focus-visible:ring-destructive/30' : undefined}
                   />
                 </div>
                 <div className="space-y-1.5 sm:col-span-1">
@@ -492,21 +531,23 @@ export function CheckoutView() {
                     id="phone"
                     inputMode="tel"
                     value={form.phone}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, phone: e.target.value }))
-                    }
+                    onChange={(e) => update('phone', e.target.value)}
                     placeholder="09xxxxxxxx"
+                    aria-invalid={!!fieldErrors.phone}
+                    className={fieldErrors.phone ? 'border-destructive focus-visible:ring-destructive/30' : undefined}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="province">Tỉnh / Thành phố *</Label>
                   <Select
                     value={form.province}
-                    onValueChange={(v) =>
-                      setForm((f) => ({ ...f, province: v }))
-                    }
+                    onValueChange={(v) => update('province', v)}
                   >
-                    <SelectTrigger id="province" className="w-full">
+                    <SelectTrigger
+                      id="province"
+                      aria-invalid={!!fieldErrors.province}
+                      className={fieldErrors.province ? 'w-full border-destructive focus-visible:ring-destructive/30' : 'w-full'}
+                    >
                       <SelectValue placeholder="Chọn tỉnh/thành" />
                     </SelectTrigger>
                     <SelectContent>
@@ -523,10 +564,10 @@ export function CheckoutView() {
                   <Input
                     id="district"
                     value={form.district}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, district: e.target.value }))
-                    }
+                    onChange={(e) => update('district', e.target.value)}
                     placeholder="Quận 1, Gò Vấp, ..."
+                    aria-invalid={!!fieldErrors.district}
+                    className={fieldErrors.district ? 'border-destructive focus-visible:ring-destructive/30' : undefined}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -534,10 +575,10 @@ export function CheckoutView() {
                   <Input
                     id="ward"
                     value={form.ward}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, ward: e.target.value }))
-                    }
+                    onChange={(e) => update('ward', e.target.value)}
                     placeholder="Phường Bến Nghé, ..."
+                    aria-invalid={!!fieldErrors.ward}
+                    className={fieldErrors.ward ? 'border-destructive focus-visible:ring-destructive/30' : undefined}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -545,10 +586,10 @@ export function CheckoutView() {
                   <Input
                     id="detail"
                     value={form.detail}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, detail: e.target.value }))
-                    }
+                    onChange={(e) => update('detail', e.target.value)}
                     placeholder="123 Lê Lợi, ..."
+                    aria-invalid={!!fieldErrors.detail}
+                    className={fieldErrors.detail ? 'border-destructive focus-visible:ring-destructive/30' : undefined}
                   />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
@@ -557,9 +598,7 @@ export function CheckoutView() {
                     id="note"
                     rows={3}
                     value={form.note}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, note: e.target.value }))
-                    }
+                    onChange={(e) => update('note', e.target.value)}
                     placeholder="Yêu cầu thời gian giao hàng, hướng dẫn địa chỉ, v.v."
                   />
                 </div>
@@ -868,37 +907,6 @@ export function CheckoutView() {
             </div>
           )}
 
-          <div className="mt-4 flex items-center justify-between gap-2">
-            <Button
-              variant="outline"
-              onClick={back}
-              className="gap-1"
-              disabled={submitting}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {step === 1 ? 'Giỏ hàng' : 'Quay lại'}
-            </Button>
-            {step < 4 ? (
-              <Button onClick={next} className="gap-1" disabled={belowMin}>
-                Tiếp tục
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={submitOrder}
-                disabled={submitting || belowMin}
-                className="gap-2"
-                size="lg"
-              >
-                {submitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Check className="h-4 w-4" />
-                )}
-                {submitting ? 'Đang đặt hàng...' : 'Đặt hàng'}
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* Order summary sidebar */}
@@ -979,6 +987,45 @@ export function CheckoutView() {
             </div>
           </Card>
         </aside>
+      </div>
+
+      {/* Nav buttons — MOBILE FIX: thanh nút DÍNH ĐÁY màn hình (sticky) để
+          khách luôn nhìn thấy "Tiếp tục / Đặt hàng" trong lúc điền thông tin,
+          hết "tuột xuống đáy không biết ấn gì". pl-16/pr-20 chừa 2 góc trái/
+          phải cho nút Gọi điện + Chat nổi. Desktop: hàng nút thường như cũ. */}
+      <div
+        className="sticky bottom-0 z-20 -mx-3 mt-4 flex items-center justify-between gap-2 border-t bg-background/95 py-2.5 pl-16 pr-20 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur-md lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-0"
+        style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom))' }}
+      >
+        <Button
+          variant="outline"
+          onClick={back}
+          className="gap-1"
+          disabled={submitting}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {step === 1 ? 'Giỏ hàng' : 'Quay lại'}
+        </Button>
+        {step < 4 ? (
+          <Button onClick={next} className="gap-1" disabled={belowMin}>
+            Tiếp tục
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button
+            onClick={submitOrder}
+            disabled={submitting || belowMin}
+            className="gap-2"
+            size="lg"
+          >
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="h-4 w-4" />
+            )}
+            {submitting ? 'Đang đặt hàng...' : 'Đặt hàng'}
+          </Button>
+        )}
       </div>
     </div>
   )

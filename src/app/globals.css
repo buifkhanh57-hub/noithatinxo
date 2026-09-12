@@ -170,6 +170,17 @@
   /* Removed: *:not(:hover) { will-change: auto; } — this caused jank */
 }
 
+/* MOBILE FIX — chặn iOS Safari tự zoom phóng to cả trang khi khách chạm
+   vào ô nhập có font-size < 16px (hiện tượng "trang bị to ra" trên iPhone).
+   16px là ngưỡng iOS bỏ auto-zoom. Chỉ áp dụng cho màn hình nhỏ. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* nicer scrollbars */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
