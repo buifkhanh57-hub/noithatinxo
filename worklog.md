@@ -748,3 +748,21 @@ Stage Summary:
 - Đúng ý chủ shop: MENU ở ĐẦU TRANG (thanh ngang dưới header) + section danh mục giữ nguyên ảnh, chỉ đổi tên thành MENU.
 - Mobile hết 2 lỗi lớn: trang tài khoản không còn "to ra" (799→380px), đặt hàng không còn "tuột đáy" (cuộn lên đầu khi đổi bước + cuộn tới ô lỗi + thanh nút dính đáy).
 - Commit 8b72d1d push → Vercel auto deploy.
+
+---
+Task ID: 21
+Agent: Z.ai Code (main)
+Task: Chủ shop phản ánh "phần kia không giống ảnh Khoa gửi lắm, muốn giống ý tớ gửi, vẫn chưa deploy lên git". Chẩn đoán + sửa.
+
+Work Log:
+- Đọc lại TOÀN BỘ ảnh chủ shop paste (upload/pasted_image_*.png): (a) ảnh chụp web anhkhoa.com = menu ngang ☰ MENU + lưới chip danh mục ở ĐẦU TRANG; (b) ảnh Zalo Khoa = strip ưu đãi + section "MENU nổi bật" (MENU ô đỏ) với LƯỚI ẢNH danh mục, caption "Để ntn khách dễ hiểu hơn"; (c) ảnh crop thanh 4 ưu đãi (Giao toàn quốc / Bảo hành 24-36T / Flash sale cuối tuần / Hỗ trợ 24/7).
+- Mở trang production noithatavh.info.vn bằng agent-browser (viewport 390): site vẫn đang chạy bản 80d6879 (MENU = chip chữ KHÔNG ảnh) → đúng như lời chủ shop "không giống ảnh Khoa".
+- Root cause deploy: `bunx tsc --noEmit` bắt lỗi TS2345 checkout-view.tsx(295) — getElementById(firstField) mất narrowing trong closure setTimeout → `next build` trên Vercel FAIL ở mọi commit từ 80d6879/8b72d1d → production mãi treo bản cũ dù git đã push. Fix: pin `const targetField: string = firstField` trước closure. tsc sạch.
+- home-view: tiêu đề section đổi thành "MENU nổi bật" — chữ MENU trong ô đỏ bo tròn (bg-red-600 text-white) + "nổi bật", subtitle "Duyệt theo không gian sống", GIỮ NGUYÊN lưới ảnh danh mục 3 cột mobile / 6 cột desktop → giống hệt ảnh mẫu Khoa.
+- Verify local (agent-browser 390px): header ☰ MENU + thanh menu ngang dưới header (Menu | Tất cả sản phẩm | các danh mục, cuộn ngang) + strip 4 ưu đãi + section MENU nổi bật ô đỏ với 6 ảnh danh mục — khớp ảnh mẫu.
+- `git push` đã bak nợ a72bcb9 (worklog) + commit fix ea03627 → Vercel build lại lần đầu SAU khi sửa lỗi TS.
+
+Stage Summary:
+- Nguyên nhân web không cập nhật KHÔNG phải do quên push: build Vercel fail do lỗi TypeScript từ Task 19/20. Đã sửa, từ giờ mỗi push sẽ deploy được.
+- Trang chủ giờ khớp ảnh mẫu Khoa: MENU nổi bật (ô đỏ) + ảnh danh mục; thanh MENU đầu trang; 4 ưu đãi như ảnh crop.
+- Commit ea03627 push → chờ Vercel deploy → verify lại production.
