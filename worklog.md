@@ -727,3 +727,24 @@ Stage Summary:
 - Form sản phẩm có ô Màu sắc (chip) — màu tạo lựa chọn cho khách, giá áp chung.
 - Trang chủ: section MENU lưới danh mục kiểu anhkhoa thay "Danh mục nổi bật".
 - Commit push → Vercel auto deploy.
+
+---
+Task ID: 20
+Agent: Z.ai Code (main)
+Task: (1) Bỏ lưới ô tên MENU đã làm SAI ý ở Task 19 — chủ shop: "CHỈ SỬA TÊN LÀ MENU, DANH MỤC + ẢNH VẪN Ở ĐÂY"; ảnh mẫu gửi kèm là để THÊM thanh MENU vào ĐẦU TRANG; (2) fix mobile trang đặt hàng "cứ tuột ở dưới, khách không biết cứ ấn nút"; (3) fix mobile trang tài khoản "bị to ra".
+
+Work Log:
+- Root cause misunderstanding: ảnh "anhkhoa" khách gửi = thiết kế thanh menu ngang ĐẦU TRANG, không phải để thay lưới danh mục. Task 19 đã sai khi xoá ảnh danh mục thay bằng ô tên thuần.
+- home-view: khôi phục 100% section gốc (ảnh vuông + tên, 3 cột mobile/6 desktop, SectionHeader) — chỉ đổi title thành "MENU".
+- header.tsx: thêm MENU BAR dưới header — "☰ MENU | Tất cả sản phẩm | <6 danh mục>", cuộn ngang mobile (ẩn scrollbar), navigate setView('shop', {cat}). Desktop + guest đều thấy.
+- Fix tràn ngang header mobile 22px (scrollWidth 412>390, nút giỏ bị cắt): brand bỏ shrink-0 (chữ co/truncate, logo giữ), actions thêm shrink-0.
+- Fix trang TÀI KHOẢN "to ra" (scrollWidth 799px vs 390px!): Radix ScrollArea wrapper display:table + w-max làm tràn cả trang → thay bằng overflow-x native + ẩn scrollbar. Kết quả: 380px, tab chips cuộn ngang đúng.
+- Fix CHECKOUT mobile: (a) useEffect [step] cuộn lên đầu trang khi chuyển bước — trước đây đứng y ở đáy; (b) validateStep1 đánh dấu fieldErrors + viền đỏ + scrollIntoView(center) tới ô lỗi đầu tiên, tự xoá đỏ khi sửa (update helper); (c) dồn hàng nút Quay lại/Tiếp tục/Đặt hàng ra sau grid, MOBILE thành sticky bottom-0 (pl-16/pr-20 chừa nút gọi điện + chat nổi, safe-area-inset), desktop giữ hàng nút thường.
+- globals.css: input/textarea/select 16px trên <768px — chặn iOS auto-zoom ("trang to ra" khi bấm vào ô nhập).
+- spa-shell: overflow-x-clip làm lớp bảo vệ tràn ngang toàn cục (không phá sticky).
+- Verify agent-browser: home mobile sw=380 + MENU bar 7 nút + section MENU có 6 ảnh; account sw=380 (từ 799); checkout bấm Tiếp tục khi trống → cuộn tới ô name (top=332, centered) + 5 ô viền đỏ + toast; điền đủ → step 2 + scrollY=0; desktop nav row static (bottom=885<900); guest: header trắng hasWood=false, MENU bar click "Phòng Khách" → /san-pham?cat=phong-khách 4 SP. Lint sạch.
+
+Stage Summary:
+- Đúng ý chủ shop: MENU ở ĐẦU TRANG (thanh ngang dưới header) + section danh mục giữ nguyên ảnh, chỉ đổi tên thành MENU.
+- Mobile hết 2 lỗi lớn: trang tài khoản không còn "to ra" (799→380px), đặt hàng không còn "tuột đáy" (cuộn lên đầu khi đổi bước + cuộn tới ô lỗi + thanh nút dính đáy).
+- Commit 8b72d1d push → Vercel auto deploy.
