@@ -93,7 +93,7 @@ PROJECT STACK:
 - Next.js 16 + TypeScript 5 + Tailwind CSS 4 + shadcn/ui
 - Prisma SQLite + Zustand + TanStack Query
 - SePay webhook (DO NOT TOUCH)
-- Fixed bank: MB Bank / 0000000002 / BUI THI BAO LOAN
+- Fixed bank: MB Bank / 08660628189 / PHAM THI HAI YEN
 - Super-admin: buikhanh57@gmail.com`
 
 

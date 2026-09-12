@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { seedDatabase } from '@/lib/seed'
 import { ensureAdminAccountsExist } from '@/lib/setup-admins'
+import { ensureFixedBankAccountSetting } from '@/lib/bank-settings-sync'
 
 // POST /api/seed?force=true  — seed (or re-seed) the database.
 // In production this would be protected by an admin token.
@@ -17,7 +18,10 @@ export async function POST(req: Request) {
     } catch (err) {
       console.error('[seed] ensureAdminAccountsExist', err)
     }
-    return NextResponse.json({ success: true, data: { ...counts, admins: admins.length } })
+    // Keep the checkout-visible bank account Setting in sync with the fixed
+    // account constant — repairs legacy seed data automatically.
+    const bankSync = await ensureFixedBankAccountSetting()
+    return NextResponse.json({ success: true, data: { ...counts, admins: admins.length, bankSync } })
   } catch (err) {
     console.error('[seed] error', err)
     return NextResponse.json(
@@ -40,7 +44,10 @@ export async function GET() {
     } catch (err) {
       console.error('[seed] ensureAdminAccountsExist', err)
     }
-    return NextResponse.json({ success: true, data: { ...counts, adminsProvisioned: admins } })
+    // Same bank-account sync as POST — the storefront calls this on every
+    // page load, so the production DB self-heals right after each deploy.
+    const bankSync = await ensureFixedBankAccountSetting()
+    return NextResponse.json({ success: true, data: { ...counts, adminsProvisioned: admins, bankSync } })
   } catch (err) {
     console.error('[seed] error', err)
     return NextResponse.json(

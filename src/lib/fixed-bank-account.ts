@@ -17,24 +17,17 @@
 // changed from the admin panel — to change it, you'd have to deploy a new
 // version of the code, which is an auditable, reviewable action.
 //
-// CURRENT CONFIG — SePay TEST MODE (MB Bank test account):
-//   - accountNumber: 0000000002 (SePay test placeholder for MB Bank)
-//   - holder:        BUI THI BAO LOAN (SePay test account holder)
-//   - bank:          MB Bank (display name)
-//   - bankCode:      mb (VietQR short code for MB Bank — used to generate
-//                    QR images via img.vietqr.io)
+// CURRENT CONFIG — PRODUCTION account (chủ shop cung cấp 2026-08):
+//   - accountNumber: 08660628189
+//   - holder:        PHAM THI HAI YEN
+//   - bank:          MB Bank (Military Bank — VietQR code "mb", bin 970422)
+//   - branch:        (không bắt buộc với tài khoản cá nhân)
 //
-// When SePay Test Mode sends a webhook for an MB Bank test transaction, the
-// payload will have `accountNumber: "0000000002"` + `gateway: "MB Bank"`.
-// Our `isFixedBankAccount()` matches by accountNumber only (gateway field
-// from SePay is just a display label, not a stable code), so it will accept
-// the test webhook.
-//
-// ⚠️ PRODUCTION: When moving to production, replace this constant with the
-// real bank account info (the production account that SePay is linked to).
-// Do NOT change .env (SEPAY_WEBHOOK_SECRET, SEPAY_API_TOKEN, NEXTAUTH_URL,
-// webhook URL) — those stay the same in production. Only this constant
-// changes.
+// Khi SePay gửi webhook cho một giao dịch thật vào tài khoản này, payload
+// sẽ có `accountNumber: "08660628189"` + `gateway: "MB Bank"` (hoặc biến
+// thể hiển thị). `isFixedBankAccount()` chỉ so khớp accountNumber nên
+// chấp nhận đúng giao dịch vào tài khoản này, mọi tài khoản khác đều bị
+// từ chối với BANK_ACCOUNT_MISMATCH (đơn giữ PENDING, ghi log để soát).
 
 export interface FixedBankAccount {
   /** Display name, e.g. "MB Bank" */
@@ -51,9 +44,9 @@ export interface FixedBankAccount {
 
 export const FIXED_BANK_ACCOUNT: FixedBankAccount = {
   bank: 'MB Bank',
-  bankCode: 'mb', // VietQR short code for MB Bank (NOT "MBABNK" — that's not a valid VietQR code)
-  accountNumber: '0000000002', // SePay Test Mode account for MB Bank
-  holder: 'BUI THI BAO LOAN', // SePay Test Mode account holder
+  bankCode: 'mb', // VietQR short code for MB Bank (bin 970422) — dùng sinh QR qua img.vietqr.io
+  accountNumber: '08660628189', // Tài khoản nhận tiền DUY NHẤT của cửa hàng
+  holder: 'PHAM THI HAI YEN',
   branch: '',
 }
 
@@ -78,6 +71,6 @@ export function isFixedBankAccount(account: {
 
 /**
  * Human-readable summary for the admin panel. E.g.
- * "MB Bank · 0000000002 · BUI THI BAO LOAN"
+ * "MB Bank · 08660628189 · PHAM THI HAI YEN"
  */
 export const FIXED_BANK_ACCOUNT_DISPLAY = `${FIXED_BANK_ACCOUNT.bank} · ${FIXED_BANK_ACCOUNT.accountNumber} · ${FIXED_BANK_ACCOUNT.holder}`

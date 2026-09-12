@@ -441,3 +441,151 @@ Stage Summary:
 - WEBHOOK URL cho SePay dashboard: https://noithatinxo.vercel.app/api/payments/sepay/webhook
 - Endpoint đã xác minh sống, bảo mật HMAC hoạt động, secret env có sẵn trên Vercel.
 - Lưu ý cho chủ shop: Webhook Secret trong SePay dashboard phải TRÙNG GIÁ TRỊ với env SEPAY_WEBHOOK_SECRET trên Vercel; đổi secret ở SePay thì phải cập nhật env Vercel + redeploy.
+
+
+---
+Task ID: 7
+Agent: Z.ai Code (main)
+Task: Sửa TOÀN BỘ thông tin ngân hàng sang tài khoản thật: 08660628189 — MB Bank — PHAM THI HAI YEN (thay tài khoản test SePay cũ 0000000002 · BUI THI BAO LOAN).
+
+Work Log:
+- src/lib/fixed-bank-account.ts: FIXED_BANK_ACCOUNT = MB Bank / mb / 08660628189 / PHAM THI HAI YEN. Đây là nguồn chân lý duy nhất: orders API snapshot vào PaymentSession, webhook SePay đối soát (isFixedBankAccount), payment-view fallback, banner admin.
+- src/lib/bank-settings-sync.ts (MỚI): ensureFixedBankAccountSetting() — mirror cứng Setting `payment_bank_accounts` (mà checkout BankTransferInfo đang đọc) về đúng tài khoản cố định; có log SystemLog để đối chiếu; idempotent (in-sync thì không ghi).
+- src/app/api/seed/route.ts: GET+POST gọi ensureFixedBankAccountSetting() → production DB tự sửa ngay sau deploy (shell gọi /api/seed mỗi lần tải trang). Kết quả trả kèm `bankSync`.
+- src/app/api/setup-db/route.ts: seed mặc định từ tài khoản Vietcombank GIẢ (0123456789 · NỘI THẤT AVH) → tài khoản thật MB.
+- src/lib/ai-agent.ts: cập nhật dòng tri thức AI agent về tài khoản ngân hàng.
+- Kiến trúc DB: schema.prisma (repo/Vercel) GIỮ NGUYÊN provider postgresql; thêm prisma/schema.dev.prisma (provider sqlite) cho local dev + script `bun run db:dev`. Fix triệt để tình trạng "restart server local là DB chết" (client sqlite generate từ schema dev, Vercel build vẫn generate từ schema postgres).
+- Kiểm chứng local (SQLite + secret tạm):
+  + /api/seed → bankSync:"created"; /api/admin/settings → payment_bank_accounts = [{"bank":"MB Bank","bankCode":"mb","accountNumber":"08660628189","holder":"PHAM THI HAI YEN"}].
+  + Webhook: payload đúng TK 08660628189 → qua cổng tài khoản (404 NOT_FOUND khi đơn chưa tồn tại); payload TK test cũ 0000000002 → 200 BANK_ACCOUNT_MISMATCH kèm expectedAccount=08660628189.
+  + E2E toàn vòng: login → tạo đơn BANK AVH325127 (2.980.000₫, PENDING_VERIFY) → webhook signed đúng TK + đủ tiền → 200 OK "Confirm success" → replay → ALREADY (chống cộng gộp) → đơn chuyển PAID + PROCESSING.
+  + Trang thanh toán đơn PENDING (AVH580784): hiển thị MB Bank · 08660628189 · PHAM THI HAI YEN, QR = img.vietqr.io/image/mb-08660628189-qr_only.png?amount=2980000&addInfo=AVH580784&accountName=PHAM THI HAI YEN.
+- Gate: tsc sạch, eslint sạch, schema.prisma diff rỗng, home 200 + 14 sản phẩm.
+
+Stage Summary:
+- Toàn hệ thống (QR, checkout, payment, đơn hàng, webhook, AI agent, admin display, seed) dùng chung MỘT tài khoản: MB Bank 08660628189 — PHAM THI HAI YEN.
+- Production self-heal: ngay khi Vercel deploy bản mới, lần tải trang đầu tiên sẽ đồng bộ Setting ngân hàng trong Supabase về tài khoản mới (bankSync=repaired/created).
+- Lưu ý SePay: webhook chỉ ghi nhận tiền vào ĐÚNG số TK 08660628189; nếu trong dashboard SePay đang trỏ tài khoản test thì đổi về tài khoản thật này.
+
+---
+Task ID: 8
+Agent: Z.ai Code (main)
+Task: Migrate database sang project Supabase MỚI (bzlaulmrxnmaagsibzty) vì project cũ bị pause do 5 ngày không hoạt động; xuất danh sách env cần tạo/sửa trên Vercel.
+
+Work Log:
+- Điều tra: schema.prisma provider=postgresql (production), .env local sqlite; DB mới chỉ có IPv6 (db.<ref>.supabase.co → 2406:da18::) → sandbox lẫn Vercel functions đều không kết nối trực tiếp được → bắt buộc dùng Supavisor pooler. IPv6 prefix 2406:da18 = ap-southeast-1 (Singapore) — trùng region Vercel (sin1).
+- prisma db push (session pooler port 5432): schema sync thành công 4.42s.
+- Viết lại scripts/migrate-sqlite-to-postgres.js: (1) fix map model PascalCase → property camelCase (ProductVariant → productVariant, bản cũ tạo "productvariant" → undefined), (2) coerce SQLite Boolean 0/1 + DateTime epoch-millis qua information_schema của Postgres đích, (3) thêm ONLY_TABLES/SKIP_TABLES.
+- Migrate catalog: Category 6, Product 14, ProductVariant 30, ProductMedia 14, Voucher 3, Banner 3, Setting 1 (bank MB 08660628189 — PHAM THI HAI YEN in-sync). BlogPost 3 sau khi null authorId (FK — bảng User cố ý bỏ qua). Bỏ qua Order/Payment/Notification/SystemLog (dữ liệu test local).
+- Verify qua transaction pooler 6543 + pgbouncer=true (đúng kiểu connection Vercel sẽ dùng): counts đúng hết, createdAt là Date thật, bank setting đúng.
+- E2E app thật với DB mới (dev server + DATABASE_URL inline): / 200, 6 danh mục render, /api/keep-alive heartbeat ok (14 SP), /api/seed success (bankSync in-sync, 7 users gồm 5 admin shop auto-provision), /api/products trả 14 SP, agent-browser: home render → click Sofa AVH-300 → /san-pham/sofa-3-cho-fabric-xam-hien-dai-avh-300, navType "navigate", SEO title đầy đủ, giá hiện.
+- Chống pause TẬN GỌC: /api/keep-alive (GET, read-only, trả counts, 500 khi DB chết) + vercel.json crons [{path:"/api/keep-alive", schedule:"0 2 * * *"}] — 09:00 giờ VN hằng ngày, Supabase không bao giờ pause nữa.
+- Theo template Supabase trênboarding: cài @supabase/supabase-js 2.116.0 + @supabase/ssr 0.12.7; tạo src/lib/supabase/client.ts (browser) + server.ts (server, cookies() async chuẩn Next 16) — phục vụ Storage/Realtime/Auth sau này; Prisma vẫn là đường dữ liệu chính.
+- Cập nhật .env.example (placeholder) + DEPLOY.md (bảng env đầy đủ, cảnh báo port 6543, hướng dẫn migrate 3 bước). .env local: sqlite + NEXT_PUBLIC_SUPABASE_* thật (file gitignored).
+- Lesson: shell sandbox export sẵn DATABASE_URL=file:... toàn cục → override .env của Next (bằng chứng: loadEnvConfig trả về file:...) → mọi lần test DB khác phải truyền inline khi khởi động server.
+- Gate: tsc --noEmit sạch, eslint sạch, db:dev restore sqlite client, local home 200. Commit 78a84ac pushed → Vercel auto-deploy.
+
+Stage Summary:
+- DB mới bzlaulmrxnmaagsibzty (Singapore) ĐẦY DỮ LIỆU + SỐNG: schema + catalog + admin + bank setting MB.
+- Việc còn lại cho chủ shop: sửa DUY NHẤT DATABASE_URL trên Vercel sang pooler 6543 của project mới (giá trị trong báo cáo cho user) → redeploy → web sống lại.
+- Root cause đã xử lý: cron keep-alive hằng ngày giữ Supabase không bao giờ pause vì vắng khách.
+- Đơn hàng cũ ở project bị pause: restore project cũ trong dashboard Supabase nếu cần export lịch sử; catalog mới đã đầy đủ không phụ thuộc project cũ.
+
+---
+Task ID: 9
+Agent: Z.ai Code (main)
+Task: Cấu hình webhook SePay MỚI (secret whsec_kIree...) — đối chiếu, test E2E và hướng dẫn cập nhật env Vercel.
+
+Work Log:
+- Đọc lại webhook route: HMAC-SHA256(rawBody, SEPAY_WEBHOOK_SECRET) → header X-SePay-Signature (fallback "<ts>.<rawBody>" khi có X-SePay-Timestamp); gate tài khoản cố định 08660628189; idempotent; flat success:true.
+- Grep SEPAY_API_TOKEN: CHƯA có code path nào dùng — chỉ lưu env (dành cho REST API SePay sau này).
+- Cập nhật .env local: SEPAY_WEBHOOK_SECRET + SEPAY_API_TOKEN (spsk_test_...).
+- Production check: /api/keep-alive → heartbeat ok (products:14) → CHỨNG NHẬN user đã cập nhật DATABASE_URL + redeploy thành công; orders: 0.
+- E2E production lần 1: order API yêu cầu login (requireUser Bearer). Đăng nhập buifkhanh57@gmail.com → tạo đơn AVH277521 (2.980.000₫, PENDING_VERIFY) → webhook ký bằng secret MỚI → 401 "Invalid signature" → CHẨN ĐOÁN: Vercel vẫn giữ SEPAY_WEBHOOK_SECRET cũ.
+- Dọn đơn test AVH277521 khỏi production DB (Bun SQL native, tránh regenerate Prisma client): delete order cascade + soldCount -1 + 2 SystemLog + 1 Notification → orders left = 0.
+- E2E LOCAL với secret mới (BASE_URL=localhost): tạo đơn AVH003910 → webhook ký đúng → 200 OK "Confirm success" → DB: PAID + PROCESSING + session SUCCESS → replay → ALREADY → sai TK → BANK_ACCOUNT_MISMATCH → cleanup (soldCount 217 như cũ). ✅ PASS TOÀN BỘ.
+- Thêm 3 script ops vào repo: test-sepay-webhook-e2e.ts (BASE_URL param), diag-sepay-webhook.ts, cleanup-test-order.ts (Bun SQL).
+
+Stage Summary:
+- Secret mới + scheme ký + code webhook ĐÃ CHỨNG MINH hoạt động (E2E local pass đủ 4 kịch bản: OK/ALREADY/MISMATCH/cleanup).
+- Việc còn lại 100% thuộc về chủ shop: Vercel → env SEPAY_WEBHOOK_SECRET = whsec_kIreeJXOj9T3cvkXZBK4giXF9bFQIUL8 → Save → Redeploy. Sau đó webhook SePay sẽ xác nhận đơn thật.
+- Production DB mới đã sống (heartbeat 14 SP, 0 đơn), có tool dọn đơn test trong repo.
+
+---
+Task ID: 10
+Agent: Z.ai Code (main)
+Task: Đổi domain sang noithatavh.info.vn — xác minh DNS, xác nhận URL webhook SePay, E2E trọn vòng trên domain mới.
+
+Work Log:
+- Domain check lần 1: root trỏ 75.2.60.5 (Netlify) → 404 Netlify; vercel.app 307 → domain mới (domain ĐÃ add trên Vercel làm primary).
+- DNS công cộng (1.1.1.1/8.8.8.8, NS ns1/ns2.tino.vn): root A đã đổi → 216.198.79.1 (Vercel ✅); www CNAME VẪN → frolicking-dragon-5bf286.netlify.app (Netlify ❌). Sandbox resolver còn cache cũ (75.2.60.5), /etc/hosts không ghi được (no root).
+- Qua IP pin (curl --resolve / https.request + SNI + Host): GET / 200 title "Nội Thất AVH", webhook GET 405, POST no-sig 401, keep-alive heartbeat ok (14 SP) → Vercel đang phục vụ domain mới.
+- Viết scripts/e2e-domain-pinned.ts (node:https, pin IP + SNI, bypass DNS cache): login → tạo đơn AVH972049 (2.980.000₫) → webhook ký secret whsec_kIree... → 200 OK "Confirm success" → DB PAID + PROCESSING → replay ALREADY → cleanup (orders left 0). ✅ PASS → CHỨNG MINH: domain mới hoạt động + SEPAY_WEBHOOK_SECRET mới đã cập nhật trên Vercel.
+- SEO surfaces (robots.txt/sitemap.xml) VẪN phát https://noithatinxo.vercel.app → NEXT_PUBLIC_SITE_URL chưa đổi; NEXTAUTH_URL cũng cần đổi; www record cần sửa CNAME → cname.vercel-dns.com.
+
+Stage Summary:
+- WEBHOOK URL CHÍNH THỨC: https://noithatavh.info.vn/api/payments/sepay/webhook — ĐÃ VERIFIED E2E PASS (tạo đơn thật → signed callback → PAID).
+- Secret SePay mới đã khớp Vercel env (webhook 200 thay vì 401).
+- Việc còn lại cho chủ shop: (1) sửa CNAME www → cname.vercel-dns.com; (2) env Vercel NEXT_PUBLIC_SITE_URL + NEXTAUTH_URL = https://noithatavh.info.vn → redeploy (SEO/sitemap/OAuth dùng domain mới).
+- Tool: e2e-domain-pinned.ts dùng được cho mọi domain sau này khi DNS sandbox cache cũ (PIN_IP + DOMAIN + SECRET + POOLER_URL).
+
+---
+Task ID: 11
+Agent: main
+Task: Fix lỗi upload ảnh HTTP 404 + 413 trên Vercel (domain noithatavh.info.vn)
+
+Work Log:
+- Chẩn đoán: /api/upload bị commit c504f23 xóa nhầm → 404 trên production; storage cũ fallback base64 data-URI + client cho 8MB/file, nhiều file/request → vượt cap 4.5MB body Vercel → 413
+- Phát hiện quan trọng: Supabase Storage API BẮT BUỘC header `apikey` + `Authorization: Bearer` (chỉ Bearer → 403 Invalid Compact JWS); đã test live bằng curl
+- Tạo bucket public "media" (limit 50MB) trên Supabase project bzlaulmrxnmaagsibzty
+- Rewrite src/lib/storage.ts: upload → Supabase Storage REST (bucket media, path {folder}/{yyyy}/{mm}/{ts}-{rand}-{slug}.{ext}), trả public URL CDN; fallback data-URI khi thiếu env; có deleteFile()
+- Khôi phục src/app/api/upload/route.ts (auth contract giữ nguyên NO_TOKEN/TOKEN_EXPIRED/TOKEN_INVALID/FORBIDDEN); limits mới: ảnh 6MB, video 4MB, tối đa 10 file
+- upload-client.ts: nén ảnh >1MB trong browser (canvas → WebP q0.85/0.7/0.55 → JPEG nền trắng, max 1920px), gửi TỪNG FILE MỘT tuần tự → không bao giờ chạm 4.5MB; GIF/AVIF không nén (cap 3MB)
+- E2E local PASS: login → upload → URL Supabase CDN → GET 200; không token → 401 NO_TOKEN
+- Commit 1392f03 push → Vercel deploy live sau 88s
+- E2E production: trúng deployment mới → upload success:true NHƯNG trả về data:base64 (không phải URL Supabase) = project Vercel THIẾU env Supabase
+- Poll 10x: 7 request rơi vào deployment CŨ (không có keep-alive), 3 vào deployment mới = domain bị 2 project cùng giữ (flap)
+
+Stage Summary:
+- Code fix HOÀN CHỈNH và đã deploy (1392f03); cần user làm 2 việc trên Vercel dashboard:
+  1. Thêm env: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY → Redeploy (NEXT_PUBLIC bake lúc build)
+  2. Remove domain noithatavh.info.vn khỏi project CŨ (chỉ giữ ở project chính) — domain đang flap 70/30 giữa 2 deployment
+- File test trong bucket đã dọn sạch; không sót DB row
+
+---
+Task ID: 12
+Agent: Z.ai Code (main)
+Task: Đổi theme trắng + đỏ AVH (nền trắng, giá/nút/logo đỏ, flash sale redesign, tên thương hiệu cạnh logo mobile)
+
+Work Log:
+- ROOT CAUSE nền đen: layout.tsx đang forcedTheme="dark" → đổi thành "light" (cả defaultTheme), khóa trắng vĩnh viễn
+- globals.css: --primary chuyển từ charcoal #161616 → đỏ AVH oklch(0.55 0.22 26) ≈ #d40a1f (+ ring đỏ); dark variant đỏ sáng hơn
+- header.tsx: tên thương hiệu hiện cả trên mobile (truớc đây hidden sm:flex), chữ đỏ text-primary; logo fallback bg-primary tự đỏ
+- Flash sale redesign (home-view): ticket đỏ gradient from-red-700 via-red-600 to-rose-500, viền tròn 2xl + ring + shadow đỏ, circles trang trí, scallop SVG edge giữa header/body, countdown variant light (hộp trắng số đỏ), CTA gradient đỏ, grid lg:grid-cols-6/4 theo số SP
+- shop-view flash banner: cùng style ticket đỏ
+- countdown-timer: variant light = bg-white text-red-600
+- Bẫy dev server: Turbopack không recompile CSS → restart; process chết khi call kết thúc → fix bằng (setsid ... &) double-fork subshell
+- Verify browser (mobile 390px + desktop 1366px): nền trắng ✓ giá đỏ ✓ nút đỏ ✓ ticket flash sale ✓ tên + logo mobile ✓ guest bấm Mua Hàng → redirect login ✓ footer stick bottom ✓
+
+Stage Summary:
+- Toàn site: nền TRẮNG + điểm nhấn ĐỎ AVH (#d40a1f): announcement, nút, giá, badge, logo, flash ticket
+- Commit push → Vercel auto deploy
+
+---
+Task ID: 13
+Agent: Z.ai Code (main)
+Task: Login/đăng ký trong menu 3 gạch + avatar/tên user; Mua Hàng → trang chi tiết; viền đen siêu mỏng cho product card; flash sale kết thúc thật (hết 24h ẩn); thêm đỏ nổi bật giữ nền trắng
+
+Work Log:
+- header.tsx: (1) announcement bar nền ĐỎ chữ trắng; (2) header: avatar tròn đỏ (chữ cái đầu) hoặc ảnh avatarUrl + tên user (lg), click → account/login; (3) menu 3 gạch thêm block tài khoản trên cùng: guest = "Đăng nhập / Đăng ký" + nút đỏ "Vào ngay" mở AuthDialog; user = avatar + tên + email + 2 nút "Tài khoản"/"Đăng xuất" (logout qua auth-store)
+- product-card.tsx: Card border-border/60 → border border-neutral-900/25 (viền đen 1px siêu mỏng, hover /40); nút "Mua Hàng" KHÔNG còn add-to-cart trực tiếp → setView product detail (đã bỏ handleAddToCart + imports rác)
+- product-view.tsx: nút chính đổi label "Thêm vào giỏ hàng", sticky bar mobile "Thêm vào giỏ"; giữ "Mua ngay" → đúng flow: xem thông tin → thêm giỏ → đặt hàng
+- Flash sale THẬT: flashEnd = 23:59:59 hôm nay (useMemo ổn định, trước đây now+23h59m mỗi lần render → vĩnh viễn); CountdownTimer thêm prop onEnd (gọi 1 lần khi diff=0); home-view + shop-view có state flashOver → ẨN TOÀN section/banner khi hết giờ
+- Đỏ nổi bật (giữ nền trắng): icon chips dịch vụ home + footer bg-red-50 text-red-600; social footer hover đỏ
+- E2E browser: login buifkhanh57 → menu hiện avatar B + tên + email + Tài khoản/Đăng xuất ✓; logout ok ✓; card Mua Hàng → trang chi tiết (heading đúng SP) ✓; Thêm vào giỏ → toast + drawer + Tiến hành thanh toán ✓; xóa SP khỏi giỏ (cleanup) ✓; lint sạch ✓
+
+Stage Summary:
+- Flow mua hàng chuẩn: Card "Mua Hàng" → trang chi tiết → "Thêm vào giỏ hàng"/"Mua ngay" → checkout
+- Flash sale có deadline thật (hôm nay 23:59:59), hết giờ tự ẩn, hôm sau chạy chu kỳ mới
+- Viền đen 1px (neutral-900/25) giúp card nổi trên nền trắng, siêu mỏng không xấu trên mobile
+

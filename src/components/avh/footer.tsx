@@ -50,10 +50,10 @@ export function Footer() {
     <footer className="mt-auto border-t border-border/60 bg-muted/30">
       {/* Trust badges strip — all text admin-configurable */}
       <div className="border-b bg-card">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-6 sm:grid-cols-4 md:gap-6">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-4 sm:grid-cols-4 sm:py-6 md:gap-6">
           {badges.map((f, i) => (
             <div key={i} className="flex items-start gap-2.5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
                 <f.icon className="h-5 w-5" />
               </div>
               <div>
@@ -100,19 +100,19 @@ export function Footer() {
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {facebook && (
-              <a href={facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent"><Facebook className="h-4 w-4" /></a>
+              <a href={facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-9 w-9 items-center justify-center rounded-full border hover:border-red-200 hover:bg-red-50 hover:text-red-600"><Facebook className="h-4 w-4" /></a>
             )}
             {zalo && (
-              <a href={zaloHref} target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent text-xs font-bold">Zalo</a>
+              <a href={zaloHref} target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="flex h-9 w-9 items-center justify-center rounded-full border text-xs font-bold hover:border-red-200 hover:bg-red-50 hover:text-red-600">Zalo</a>
             )}
             {instagram && (
-              <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent"><Instagram className="h-4 w-4" /></a>
+              <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border hover:border-red-200 hover:bg-red-50 hover:text-red-600"><Instagram className="h-4 w-4" /></a>
             )}
             {youtube && (
-              <a href={youtube} target="_blank" rel="noopener noreferrer" aria-label="Youtube" className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent"><Youtube className="h-4 w-4" /></a>
+              <a href={youtube} target="_blank" rel="noopener noreferrer" aria-label="Youtube" className="flex h-9 w-9 items-center justify-center rounded-full border hover:border-red-200 hover:bg-red-50 hover:text-red-600"><Youtube className="h-4 w-4" /></a>
             )}
             {tiktok && (
-              <a href={tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent text-xs font-bold">TT</a>
+              <a href={tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="flex h-9 w-9 items-center justify-center rounded-full border text-xs font-bold hover:border-red-200 hover:bg-red-50 hover:text-red-600">TT</a>
             )}
           </div>
         </div>

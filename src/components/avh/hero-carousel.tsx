@@ -45,7 +45,7 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
 
   return (
     <section className="relative overflow-hidden rounded-xl bg-muted" aria-label="Khuyến mãi nổi bật">
-      <div className="relative aspect-[16/9] sm:aspect-[2/1] md:aspect-[21/8] lg:aspect-[21/8]">
+      <div className="relative aspect-[2/1] sm:aspect-[2/1] md:aspect-[21/8] lg:aspect-[21/8]">
         {banners.map((b, i) => (
           <button
             key={b.id}
@@ -67,11 +67,11 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
             />
             {/* gradient overlay + title */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-            <div className="absolute inset-0 flex items-end p-5 sm:p-8 md:p-10">
+            <div className="absolute inset-0 flex items-end p-4 sm:p-8 md:p-10">
               <div className="max-w-lg text-left text-white">
-                <h2 className="text-lg font-bold leading-tight drop-shadow sm:text-2xl md:text-3xl">{b.title}</h2>
+                <h2 className="text-base font-bold leading-tight drop-shadow sm:text-2xl md:text-3xl">{b.title}</h2>
                 <p className="mt-1 hidden text-sm opacity-90 sm:block">Khám phá bộ sưu tập phù hợp với không gian của bạn</p>
-                <span className="mt-3 inline-block rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-foreground sm:text-sm">
+                <span className="mt-2 inline-block rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-foreground sm:mt-3 sm:px-4 sm:py-1.5 sm:text-sm">
                   Mua ngay →
                 </span>
               </div>
@@ -97,7 +97,7 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
           >
             <ChevronRight className="h-5 w-5" />
           </button>
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+          <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 sm:bottom-3">
             {banners.map((_, i) => (
               <button
                 key={i}

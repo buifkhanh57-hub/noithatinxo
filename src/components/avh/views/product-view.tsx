@@ -379,7 +379,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
                 <Badge className="bg-emerald-600 text-white shadow">Mới</Badge>
               )}
               {product.isFlashSale && (
-                <Badge className="bg-amber-500 text-white shadow">Flash Sale</Badge>
+                <Badge className="bg-red-600 text-white shadow">Flash Sale</Badge>
               )}
               {product.isFeatured && (
                 <Badge className="bg-primary text-primary-foreground shadow">Nổi bật</Badge>
@@ -595,7 +595,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
               onClick={() => handleAddToCart(false)}
               disabled={outOfStock}
             >
-              <ShoppingCart className="h-5 w-5" /> Thêm vào giỏ
+              <ShoppingCart className="h-5 w-5" /> Thêm vào giỏ hàng
             </Button>
             <Button
               size="lg"
