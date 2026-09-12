@@ -654,3 +654,20 @@ Stage Summary:
 - Admin đăng nhập = thấy vân gỗ sồi vàng (INOVAR) ở header; khách truy cập KHÔNG BAO GIỜ thấy gỗ — header trắng trong suốt mờ như cũ.
 - Dải Phòng Khách/Phòng Ngủ/Phòng Ăn dưới header đã XOÁ hoàn toàn (cả mobile + desktop); category còn ở menu 3 gạch + section "Danh mục nổi bật" trên trang chủ (giữ — là nội dung cửa hàng).
 - Commit b029c14 push → Vercel auto deploy.
+
+---
+Task ID: 16
+Agent: Z.ai Code (main)
+Task: Chủ shop chê swatch Inovar cắt ra "xấu, không giống gỗ thật" → thay bằng texture gỗ thật sinh bằng AI.
+
+Work Log:
+- Sinh 3 ứng viên texture gỗ (z-ai image, 1344x768): A óc chó đỏ vân dọc, B sồi vàng vân cathedral chảy ngang, C teak vân chéo. Chọn B — thật nhất, sáng nhất, chữ dễ đọc.
+- Bài học layout: crop band 1240x240 dùng cover → header 64px chỉ thấy giữa, vân zoom thành "sợi rơm". Fix: NÉN DỌC ảnh về đúng tỷ lệ header (1920×115, aspect ~16.7:1 — trùng mockup đã duyệt) + background-size: 100% 100%.
+- Mockup PIL soạn trước (nén sẵn + veil + đáy tối) để duyệt nhanh không cần chạy browser nhiều vòng.
+- .wood-surface-admin veil: trắng 20%→6%→4% + rgba(80,46,14,.18) đáy; text tagline admin #8a5a26→#5c3a17.
+- Verify: admin desktop/mobile vân gỗ thật rõ, chữ đọc tốt; guest session riêng → header trắng trong, wood=false. Lint sạch.
+
+Stage Summary:
+- Header admin = ảnh chụp vân gỗ sồi thật (AI, không ghép seams); khách không đổi.
+- Asset: public/wood-real-oak-3.jpg (82KB); các file swatch/texture cũ đã xoá.
+- Commit push → Vercel auto deploy.
