@@ -766,3 +766,25 @@ Stage Summary:
 - Nguyên nhân web không cập nhật KHÔNG phải do quên push: build Vercel fail do lỗi TypeScript từ Task 19/20. Đã sửa, từ giờ mỗi push sẽ deploy được.
 - Trang chủ giờ khớp ảnh mẫu Khoa: MENU nổi bật (ô đỏ) + ảnh danh mục; thanh MENU đầu trang; 4 ưu đãi như ảnh crop.
 - Commit ea03627 push → chờ Vercel deploy → verify lại production.
+
+---
+Task ID: 22
+Agent: Z.ai Code (main)
+Task: (1) Chủ shop báo "vercel bị lỗi build, fix đi"; (2) XÓA dải ưu đãi đầu trang (Giao toàn quốc / Free ship 3tr+ / Bảo hành 24-36T / Chính hãng AVH / Flash sale cuối tuần / Giảm đến 35% / Hỗ trợ 24/7 / Trợ Lý AVH); (3) Xóa chữ "nổi bật" cạnh MENU — chỉ còn ô đỏ MENU.
+
+Work Log:
+- Chẩn đoán "lỗi build Vercel": `bunx tsc --noEmit` sạch; clone repo về ĐÚNG commit Vercel đang build (be54cee) vào /home/z/avh-verify + `bun install` riêng + `bun run build` → build THÀNH CÔNG toàn bộ 69 route.
+- Tra GitHub Deployments API (dùng token sẵn trong git remote): a72bcb9 = FAILURE (lỗi TS cũ, trước fix Task 21), còn ea03627 + be54cee = SUCCESS. Site live xác nhận chạy đúng build be54cee (chunk hash khớp + marker "Duyệt theo không gian sống" trong chunk aa02... trên production; lần đầu fetch nhầm /static/ thay vì /_next/static/ nên ra HTML fallback — đã sửa URL check).
+- Kết luận: build Vercel KHÔNG lỗi — chủ shop nhìn deployment FAILURE cũ (a72bcb9) trước khi fix. Task 21 đã sửa triệt để.
+- home-view.tsx: (a) XÓA nguyên section "Quick service highlights" (4 ô Giao toàn quốc…) — import Truck/ShieldCheck/Headphones cũng dọn theo; (b) tiêu đề MENU bỏ `<span>nổi bật</span>` → chỉ còn ô đỏ MENU, cập nhật comment.
+- Dọn file rác `--timeout` (binary 234KB bị commit nhầm ở cab5e7c CHƯA push) — git rm.
+- Pre-push build verify: commit e79e312 → build lại trong clone → PASS.
+- agent-browser: mobile 390 (sw=380, không tràn, dải ưu đãi mất, MENU chỉ ô đỏ, lưới 6 ảnh danh mục nguyên, MENU bar đầu trang OK) + desktop 1366 (sw=1356, flash sale + Sản phẩm nổi bật vẫn hoạt động). Lint + tsc sạch.
+- Push → poll GitHub API: deployment 6412731326 cho e79e312 = SUCCESS (poll đầu tiên). Verify live: chunk home mới aa02c7c48873ccc0.js có "Duyệt theo không gian sống", KHÔNG có "Giao toàn quốc", không "MENU nổi bật" (2 chỗ "nổi bật" còn lại = aria-label hero + section "Sản phẩm nổi bật" — không thuộc yêu cầu).
+
+Stage Summary:
+- Vercel build bình thường trở lại từ Task 21; mọi commit mới đều deploy thành công (bằng chứng: e79e312 SUCCESS).
+- Đầu trang giờ là: topbar → header → MENU bar → hero → MENU (ô đỏ) → lưới ảnh danh mục. Dải 4 ô ưu đãi đã bị xóa hoàn toàn.
+- Chữ "nổi bật" cạnh MENU đã xóa — tiêu đề section đúng literal "MENU".
+- LƯU Ý cho chủ shop: các text Giao toàn quốc/Free ship… vẫn còn ở FOOTER (cuối trang) — chủ shop chỉ yêu cầu xóa phần ĐẦU TRANG nên giữ nguyên footer.
+- Commit e79e312 push → Vercel deploy SUCCESS → verified live.
