@@ -589,3 +589,31 @@ Stage Summary:
 - Flash sale có deadline thật (hôm nay 23:59:59), hết giờ tự ẩn, hôm sau chạy chu kỳ mới
 - Viền đen 1px (neutral-900/25) giúp card nổi trên nền trắng, siêu mỏng không xấu trên mobile
 
+
+---
+Task ID: 8
+Agent: Z.ai Code (main)
+Task: Làm theo ảnh Zalo khách gửi — header vân gỗ kiểu NT Anh Khoa + SDT/Zalo + các yêu cầu tồn đọng (theme trắng, flash sale hết hạn thật, viền thẻ, đăng nhập trong menu, luồng mua qua trang chi tiết).
+
+Work Log:
+- Đọc 4 ảnh Zalo trong /home/z/my-project/upload (ảnh chụp site anhkhoa.com.vn): yêu cầu = header kiểu Anh Khoa (MENU + tên AVH), nền header MÀU GỖ, có phần SDT + Zalo, phần danh mục trên đầu.
+- Sinh texture gỗ sồi sáng bằng AI (z-ai image) → public/wood-header.jpg; class .wood-surface / .wood-surface-soft trong globals.css (lớp kem phủ 82–90% để chữ vẫn đọc rõ).
+- header.tsx viết lại theo mẫu Anh Khoa:
+  + Hàng chính nền gỗ: ☰ MENU (icon + chữ), logo AVH đỏ + "NỘI THẤT AVH" + tagline, search (desktop), icon tài khoản/yêu thích/so sánh/giỏ hàng (badge đỏ), search thả xuống (mobile).
+  + Quick-nav NGAY DƯỚI header (cuộn theo trang, không sticky): mobile grid 4 cột × 2 hàng + ô đỏ "Tất cả" mở sheet; desktop 1 hàng cuộn ngang + nút đỏ "Lọc sản phẩm".
+  + Thanh đỏ liên hệ: hotline (tel:) bên trái + "Chat Zalo" (zalo.me/<sđt>) bên phải — hiển thị mọi trang.
+  + Sheet hamburger: khách → nút đỏ "Đăng nhập / Đăng ký" mở AuthDialog; đã đăng nhập → avatar + tên + email bấm vào tài khoản; cuối menu có hotline + Zalo. Bỏ ThemeToggle (bị force light).
+- floating-contact.tsx (MỚI): 2 nút tròn nổi góc trái dưới — Gọi (đỏ, tel:) + Zalo (xanh Zalo #0180c7); ẩn ở /quan-tri; gắn trong spa-shell cạnh ChatWidget.
+- Sửa BUG FLASH SALE KHÔNG BAO GIỜ HẾT HẠN: trước đây flashEnd = new Date(); +23h59 mỗi lần render → deadline tự dịch theo thời gian thực. Giờ có src/lib/flash-sale.ts: cửa sổ neo theo ngày UTC (00:00–23:59:59.999), pure function → SSR/client cùng giá trị, countdown CHẠY THẬT về 0; CountdownTimer thêm onExpired → home-view ẩn cả block khi hết; shop-view dùng chung lib (bỏ useMemo +23h).
+- Luồng mua mới theo yêu cầu: ProductCard bỏ add-to-cart + login-gate; nút "Mua Hàng" → /san-pham/<slug> (trang chi tiết có "Thêm vào giỏ" + "Mua ngay"); card viền đen cực mỏng border-black/25 (hover /45).
+- Theme trắng + đỏ: layout.tsx forcedTheme/defaultTheme = "light"; primary đỏ oklch(0.55 0.22 26) (dark 0.66 0.21 26), ring/sidebar đồng bộ; banner flash sale dạng ticket đỏ gradient (from-red-700 via-red-600 to-rose-500) + viền răng cưa SVG + timer hộp trắng chữ đỏ; newsletter đỏ (tự theo primary); ô icon dịch vụ bg-red-50 text-red-600.
+- settings: brand_tagline mặc định "Sản xuất trực tiếp - Không qua trung gian" (settings.ts + settings-store.ts).
+- Sự cố sandbox: .env chỉ còn DATABASE_URL sqlite + schema.prisma bị reset về postgres → chuyển sang kiến trúc schema.dev.prisma (bun run db:dev) như Task 7 đã ghi; DB local chết → prisma db push + /api/seed lại (6 danh mục, 14 SP, 3 banner...).
+- Merge origin/main (nhánh remote có sẵn commit cc1fa60 "white theme + red identity" + hạ tầng upload Supabase/bank MB thật): resolve conflict giữ PHIÊN BẢN MỚI CỦA MÌNH cho UI (header gỗ, flash lib, card, shop/home), giữ remote cho upload/route.ts + hạ tầng; worklog hợp nhất 2 bên; schema.prisma trả lại postgresql (fix trước khi push).
+- Browser-verify (agent-browser 390px + 1440px): header gỗ + quick-nav + thanh đỏ SDT/Zalo render đúng; countdown chạy ngược thật 08:55:53 → 08:55:50; click "Mua Hàng" → URL /san-pham/bo-ban-an-4-ghe-go-oak-avh-dt + title SEO; "Thêm vào giỏ" → toast + drawer đúng giá đỏ 8.800.000đ; menu hamburger khách/đã đăng nhập (avatar "Bùi Khánh (Chủ shop)") đều đúng; login admin buifkhanh57@gmail.com OK; footer stick ở trang ngắn /so-sanh; html.light + price đỏ lab(45.5 69.7 48.8); ERROR 0 (chỉ còn warning Radix a11y dev-only có từ trước).
+
+Stage Summary:
+- Đã đẩy lên origin/main: e546484 (sau merge 34dc4e7). UI hiện tại = đúng 4 ảnh Zalo: header MENU + AVH nền gỗ, grid danh mục, thanh đỏ SDT + Chat Zalo, nút nổi Gọi/Zalo.
+- Flash sale giờ có deadline thật trong ngày, hết giờ là ẩn block (sẽ tự mở lại chu kỳ ngày sau).
+- Lưu ý Vercel: sau pull lần này cần Redeploy; schema.prisma đã đảm bảo postgresql; local dev dùng `bun run db:dev`.
+- Cần chủ shop cập nhật Setting hotline/social_zalo trong trang Quản trị nếu muốn đổi số (mặc định 1900 1234 / 0938123456).
