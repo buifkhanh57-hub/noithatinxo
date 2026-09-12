@@ -1,0 +1,4 @@
+# Cấu hình build cho Railway (nixpacks) — Vercel bỏ qua file này.
+# Next.js 16 yêu cầu Node >= 20.9, nixpacks mặc định Node cũ hơn → build fail.
+[variables]
+NIXPACKS_NODE_VERSION = "22"
