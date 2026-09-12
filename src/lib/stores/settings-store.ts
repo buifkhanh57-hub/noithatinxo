@@ -19,7 +19,7 @@ interface SettingsState {
 
 const DEFAULTS: Record<string, string> = {
   brand_name: 'Nội Thất AVH',
-  brand_tagline: 'Nội thất & Trang trí nhà cửa',
+  brand_tagline: 'Sản xuất trực tiếp - Không qua trung gian',
   brand_logo_url: '',
   brand_description: 'Nội Thất AVH chuyên cung cấp nội thất và phụ kiện trang trí nhà cửa với thiết kế hiện đại, chất lượng đảm bảo và dịch vụ hậu mãi tận tâm.',
   contact_hotline: '1900 1234',

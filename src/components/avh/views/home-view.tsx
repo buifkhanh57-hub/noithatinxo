@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { useMounted } from '@/hooks/use-mounted'
 import { useRecentStore } from '@/lib/stores/recent-store'
+import { flashSaleEnd } from '@/lib/flash-sale'
 import { HeroCarousel } from '@/components/avh/hero-carousel'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
 import { CountdownTimer } from '@/components/avh/countdown-timer'
@@ -13,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ArrowRight, Flame, Sparkles, Truck, ShieldCheck, Headphones, TrendingUp, Newspaper } from 'lucide-react'
 import Image from 'next/image'
 import { formatVND } from '@/lib/format'
+import { cn } from '@/lib/utils'
 
 interface Banner { id: string; title: string; imageUrl: string; mobileImageUrl?: string; link?: string }
 interface Category { id: string; name: string; slug: string; icon?: string; imageUrl?: string; productCount: number }
@@ -52,9 +55,10 @@ export function HomeView() {
     queryFn: () => api.get('/api/blog'),
   })
 
-  // 2-day flash sale window anchored to a fixed start so the countdown is stable
-  const flashEnd = new Date()
-  flashEnd.setHours(flashEnd.getHours() + 23, 59, 59)
+  // Fixed, day-anchored flash-sale deadline — truly counts down & expires
+  // (lib/flash-sale.ts fixes the old "never ends" bug).
+  const [flashExpired, setFlashExpired] = useState(false)
+  const flashEnd = flashSaleEnd()
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
@@ -119,29 +123,49 @@ export function HomeView() {
         )}
       </section>
 
-      {/* Flash Sale */}
-      {mounted && flashSale && flashSale.items.length > 0 && (
-        <section className="mt-8 overflow-hidden rounded-xl border-2 border-amber-500/40 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:to-red-950/20">
-          <div className="flex flex-col gap-2 border-b border-amber-500/30 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <Flame className="h-6 w-6 text-red-600" />
-              <h2 className="text-lg font-bold text-red-700 dark:text-red-400 sm:text-xl">⚡ Flash Sale Cuối Tuần</h2>
-              <span className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">-35%</span>
+      {/* Flash Sale — red ticket banner, tự ẩn khi hết giờ (flash truly expires) */}
+      {mounted && flashSale && flashSale.items.length > 0 && !flashExpired && (
+        <section className="mt-8 overflow-hidden rounded-xl shadow-md">
+          {/* Ticket header — red gradient with punched-hole decorations */}
+          <div className="relative overflow-hidden bg-gradient-to-r from-red-700 via-red-600 to-rose-500">
+            {/* translucent white circles — ticket decoration */}
+            <span aria-hidden className="absolute -left-4 -top-8 h-20 w-20 rounded-full bg-white/15" />
+            <span aria-hidden className="absolute -bottom-10 left-1/3 h-24 w-24 rounded-full bg-white/10" />
+            <span aria-hidden className="absolute -right-6 -top-10 h-28 w-28 rounded-full bg-white/10" />
+            <div className="relative flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-center gap-2">
+                <Flame className="h-6 w-6 text-amber-300" aria-hidden />
+                <h2 className="text-lg font-extrabold tracking-tight text-white sm:text-xl">
+                  FLASH SALE HÔM NAY
+                </h2>
+                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-red-600 shadow">-35%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-white/90">Kết thúc sau:</span>
+                <CountdownTimer target={flashEnd} variant="dark" size="sm" onExpired={() => setFlashExpired(true)} />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-red-700 dark:text-red-400">Kết thúc trong:</span>
-              <CountdownTimer target={flashEnd} variant="dark" size="sm" />
+            {/* serrated tear-off edge */}
+            <svg aria-hidden className="block h-2 w-full" preserveAspectRatio="none" viewBox="0 0 100 4">
+              {Array.from({ length: 25 }).map((_, i) => (
+                <circle key={i} cx={i * 4 + 2} cy={4} r={2} fill="rgb(254 242 242)" />
+              ))}
+            </svg>
+          </div>
+          <div className="bg-red-50/60">
+            <div className={cn(
+              'grid grid-cols-2 gap-3 p-4 sm:grid-cols-3',
+              flashSale.items.length > 4 ? 'lg:grid-cols-6' : 'lg:grid-cols-4'
+            )}>
+              {flashSale.items.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-6">
-            {flashSale.items.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-          <div className="border-t border-amber-500/30 p-3 text-center">
-            <Button variant="outline" size="sm" onClick={() => setView('shop', { flashSale: 'true' })} className="gap-1.5">
-              Xem tất cả flash sale <ArrowRight className="h-4 w-4" />
-            </Button>
+            <div className="border-t border-red-200/70 p-3 text-center">
+              <Button size="sm" onClick={() => setView('shop', { flashSale: 'true' })} className="gap-1.5 font-bold">
+                Xem tất cả flash sale <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </section>
       )}

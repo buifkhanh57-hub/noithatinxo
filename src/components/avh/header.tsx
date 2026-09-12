@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Search,
   ShoppingCart,
@@ -12,10 +11,16 @@ import {
   Phone,
   ChevronRight,
   LayoutDashboard,
+  LogIn,
+  MessageCircle,
+  SlidersHorizontal,
+  Armchair,
+  Package,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/ui/sheet'
 import { useUIStore, ViewName } from '@/lib/stores/ui-store'
 import { useCartStore } from '@/lib/stores/cart-store'
@@ -23,7 +28,6 @@ import { useWishlistStore } from '@/lib/stores/wishlist-store'
 import { useCompareStore } from '@/lib/stores/compare-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { useSettingsStore } from '@/lib/stores/settings-store'
-import { ThemeToggle } from './theme-toggle'
 import { AuthDialog } from './auth-dialog'
 import { useMounted } from '@/hooks/use-mounted'
 import { useQuery } from '@tanstack/react-query'
@@ -38,9 +42,15 @@ interface Category {
   imageUrl?: string
 }
 
+/** Zalo deep link: http(s) passthrough, otherwise personal link zalo.me/<phone> */
+function zaloHref(zalo: string): string {
+  if (!zalo) return ''
+  if (zalo.startsWith('http')) return zalo
+  return `https://zalo.me/${zalo.replace(/\D/g, '')}`
+}
+
 export function Header() {
   const setView = useUIStore((s) => s.setView)
-  const view = useUIStore((s) => s.view)
   const openCart = useUIStore((s) => s.openCart)
   const mobileSearchOpen = useUIStore((s) => s.mobileSearchOpen)
   const setMobileSearchOpen = useUIStore((s) => s.setMobileSearchOpen)
@@ -55,6 +65,8 @@ export function Header() {
   const brandName = settings.get('brand_name')
   const brandTagline = settings.get('brand_tagline')
   const brandLogoUrl = settings.get('brand_logo_url')
+  const hotline = settings.get('contact_hotline')
+  const zalo = settings.get('social_zalo')
   const showTracking = settings.get('announcement_show_tracking') === 'true'
   const showBlog = settings.get('announcement_show_blog') === 'true'
 
@@ -92,6 +104,11 @@ export function Header() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  /* Quick-nav: mobile shows 8 tiles (4×2) + red "Tất cả" tile; desktop shows
+     one scrollable row — mirrors the Anh Khoa reference the client approved. */
+  const mobileCats = categories?.slice(0, 8) ?? []
+  const iconCls = 'text-[#7a4a21]'
+
   return (
     <>
       {/* Announcement bar — text & links are admin-configurable */}
@@ -117,26 +134,64 @@ export function Header() {
         </div>
       </div>
 
-      {/* Main header */}
-      <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-4">
-          {/* Mobile menu */}
+      {/* Main header — light-oak wood grain (Anh Khoa style) */}
+      <header className="sticky top-0 z-40 w-full border-b-2 border-[#b98a4e]/40 wood-surface shadow-[0_1px_3px_rgba(87,52,21,0.18)]">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-1.5 px-2 sm:h-16 sm:gap-4 sm:px-4">
+          {/* Mobile menu (hamburger + MENU label, like the reference) */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0"
+              <button
+                className="flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-2 hover:bg-[#e6d3b4]/60 sm:px-2"
                 aria-label="Mở menu"
               >
-                <Menu className="h-5 w-5" />
-              </Button>
+                <Menu className="h-6 w-6 text-[#5c3a17]" strokeWidth={2.5} />
+                <span className="text-sm font-extrabold uppercase tracking-wide text-[#5c3a17]">
+                  Menu
+                </span>
+              </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0">
-              <SheetHeader className="px-4 py-4 border-b">
-                <SheetTitle className="text-left">Danh mục</SheetTitle>
+            <SheetContent side="left" className="w-[300px] p-0">
+              <SheetHeader className="border-b px-4 py-4">
+                {mounted && user ? (
+                  /* Logged in → avatar + name, tap = account page */
+                  <button
+                    onClick={() => go('account')}
+                    className="flex w-full items-center gap-3 text-left"
+                    aria-label="Vào trang tài khoản"
+                  >
+                    <Avatar className="h-10 w-10 border border-primary/30">
+                      <AvatarFallback className="bg-primary font-bold text-primary-foreground">
+                        {(user.name || 'K').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold">{user.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {user.email || 'Tài khoản AVH'}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                ) : (
+                  /* Guest → red login/register CTA (yêu cầu: menu có đăng nhập) */
+                  <>
+                    <SheetTitle className="text-left text-sm font-semibold text-muted-foreground">
+                      Xin chào quý khách 👋
+                    </SheetTitle>
+                    <Button
+                      className="mt-2 w-full gap-2 font-bold"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        setAuthOpen(true)
+                      }}
+                    >
+                      <LogIn className="h-4 w-4" />
+                      Đăng nhập / Đăng ký
+                    </Button>
+                  </>
+                )}
               </SheetHeader>
-              <nav className="flex flex-col gap-0.5 p-2">
+              <nav className="flex flex-col gap-0.5 overflow-y-auto p-2" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
                 <button
                   onClick={() => go('home')}
                   className="flex items-center justify-between rounded px-3 py-2.5 text-sm hover:bg-accent"
@@ -172,32 +227,59 @@ export function Header() {
                     <LayoutDashboard className="h-4 w-4" /> Quản trị
                   </button>
                 )}
+
+                {/* Menu footer: hotline + zalo (thêm phần sdt & zalo theo yêu cầu) */}
+                <div className="mt-3 rounded-lg border bg-card p-3">
+                  <a
+                    href={`tel:${(hotline || '').replace(/\s/g, '')}`}
+                    className="flex items-center gap-2 text-sm font-semibold text-primary"
+                  >
+                    <Phone className="h-4 w-4" /> {hotline}
+                  </a>
+                  {zalo && (
+                    <a
+                      href={zaloHref(zalo)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#0180c7]"
+                    >
+                      <MessageCircle className="h-4 w-4" /> Chat Zalo
+                    </a>
+                  )}
+                </div>
               </nav>
             </SheetContent>
           </Sheet>
 
-          {/* Logo */}
+          {/* Brand — logo + name + tagline, luôn hiển thị cả mobile */}
           <button
             onClick={() => go('home')}
-            className="flex shrink-0 items-center gap-1.5"
+            className="flex min-w-0 shrink-0 items-center gap-2"
             aria-label={`Trang chủ ${brandName}`}
           >
             {brandLogoUrl ? (
-              <img src={brandLogoUrl} alt={brandName} className="h-9 w-auto sm:h-10" />
+              <img src={brandLogoUrl} alt={brandName} className="h-9 w-auto sm:h-11" />
             ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm sm:h-10 sm:w-10">
+              <span
+                aria-hidden
+                className="select-none text-2xl font-black italic leading-none tracking-tighter text-primary drop-shadow-sm sm:text-3xl"
+              >
                 AVH
-              </div>
+              </span>
             )}
-            <div className="hidden flex-col leading-none sm:flex">
-              <span className="text-sm font-bold tracking-tight text-foreground">{brandName.toUpperCase()}</span>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{brandTagline}</span>
-            </div>
+            <span className="flex min-w-0 flex-col items-start leading-tight">
+              <span className="truncate text-sm font-extrabold uppercase tracking-tight text-[#4a2f12] sm:text-base">
+                {brandName.toUpperCase()}
+              </span>
+              <span className="max-w-[130px] truncate text-[9px] font-semibold uppercase tracking-wider text-[#8a5a26] sm:max-w-none sm:text-[10px]">
+                {brandTagline}
+              </span>
+            </span>
           </button>
 
           {/* Search (desktop) */}
-          <form onSubmit={handleSearch} className="relative hidden flex-1 md:block max-w-xl">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <form onSubmit={handleSearch} className="relative mx-auto hidden w-full max-w-xl md:block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a5a26]" />
             <Input
               id="avh-search-input"
               value={searchValue}
@@ -205,7 +287,7 @@ export function Header() {
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
               placeholder="Tìm sofa, giường, đèn trang trí… (ấn / để focus)"
-              className="h-10 pl-9 pr-4"
+              className="h-10 border-[#c9a06a] bg-white/95 pl-9 pr-4 placeholder:text-[#a98a63]"
               aria-label="Tìm kiếm sản phẩm"
             />
             {searchFocused && searchValue && categories && (
@@ -246,13 +328,12 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden hover:bg-[#e6d3b4]/60"
               onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
               aria-label="Tìm kiếm"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-5 w-5 text-[#5c3a17]" />
             </Button>
-            <ThemeToggle />
             {user?.role === 'ADMIN' && (
               <Button
                 variant="secondary"
@@ -268,21 +349,21 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
+              className="relative hover:bg-[#e6d3b4]/60"
               onClick={() => (user ? go('account') : setAuthOpen(true))}
               aria-label="Tài khoản"
             >
-              <User className="h-5 w-5" />
+              <User className="h-5 w-5 text-[#5c3a17]" />
               {user && <span className="sr-only">{user.name}</span>}
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="relative hidden sm:inline-flex"
+              className="relative hidden hover:bg-[#e6d3b4]/60 sm:inline-flex"
               onClick={() => go('wishlist')}
               aria-label="Sản phẩm yêu thích"
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-5 w-5 text-[#5c3a17]" />
               {mounted && wishlistCount > 0 && (
                 <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 text-[10px]">
                   {wishlistCount}
@@ -293,11 +374,11 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hidden sm:inline-flex"
+                className="relative hidden hover:bg-[#e6d3b4]/60 sm:inline-flex"
                 onClick={() => go('compare')}
                 aria-label="So sánh"
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#5c3a17]" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 6h16M4 12h10M4 18h7" strokeLinecap="round" />
                 </svg>
                 <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 text-[10px]">
@@ -308,11 +389,11 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
+              className="relative hover:bg-[#e6d3b4]/60"
               onClick={openCart}
               aria-label="Giỏ hàng"
             >
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-5 w-5 text-[#5c3a17]" />
               {mounted && cartCount > 0 && (
                 <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 text-[10px]">
                   {cartCount}
@@ -324,14 +405,14 @@ export function Header() {
 
         {/* Mobile search bar */}
         {mobileSearchOpen && (
-          <div className="border-t px-3 py-2 md:hidden">
+          <div className="border-t border-[#c9a06a]/40 px-3 py-2 md:hidden">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a5a26]" />
               <Input
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 placeholder="Tìm sản phẩm…"
-                className="h-9 pl-9 pr-9"
+                className="h-9 border-[#c9a06a] bg-white/95 pl-9 pr-9"
                 autoFocus
               />
               <button
@@ -345,10 +426,92 @@ export function Header() {
             </form>
           </div>
         )}
-
-        {/* Category navigation lives inside the mobile hamburger menu (Sheet)
-            above — no separate desktop bar. Keeps the header clean. */}
       </header>
+
+      {/* ---- Quick category nav (dưới header, cuộn theo trang như Anh Khoa) ---- */}
+      <section aria-label="Danh mục nhanh" className="wood-surface-soft border-b border-[#b98a4e]/30">
+        <div className="mx-auto max-w-7xl px-2 sm:px-4">
+          {/* Mobile: 4-cột grid 8 nhóm + ô đỏ "Tất cả" */}
+          <div className="grid grid-cols-4 gap-px py-1.5 md:hidden">
+            {mobileCats.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => go('shop', { cat: c.slug })}
+                className="flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 text-center transition active:bg-[#e6d3b4]/70"
+              >
+                <Armchair className={cn('h-4 w-4', iconCls)} />
+                <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-[#4a2f12]">
+                  {c.name}
+                </span>
+              </button>
+            ))}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-md bg-primary px-1 py-1.5 text-center text-primary-foreground transition active:bg-primary/90"
+              aria-label="Xem tất cả danh mục"
+            >
+              <Package className="h-4 w-4" />
+              <span className="text-[10px] font-bold leading-tight">Tất cả</span>
+            </button>
+          </div>
+
+          {/* Desktop: 1 hàng cuộn ngang + nút đỏ mở bộ lọc */}
+          <nav className="hidden items-center gap-0.5 md:flex">
+            <div className="flex flex-1 items-center gap-0.5 overflow-x-auto py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {categories?.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => go('shop', { cat: c.slug })}
+                  className="shrink-0 rounded-md px-3 py-1.5 text-[13px] font-semibold text-[#4a2f12] transition hover:bg-[#e6d3b4]/70 hover:text-primary"
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => go('shop')}
+              className="ml-2 flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground transition hover:bg-primary/90"
+              aria-label="Tìm kiếm nâng cao"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Lọc sản phẩm
+            </button>
+          </nav>
+        </div>
+      </section>
+
+      {/* ---- Red contact strip: SDT + Zalo (yêu cầu "thêm phần sdt và zalo") ---- */}
+      <section aria-label="Liên hệ tư vấn" className="bg-primary text-primary-foreground">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-4">
+          <a
+            href={`tel:${(hotline || '').replace(/\s/g, '')}`}
+            className="flex min-w-0 items-center gap-2 text-xs font-bold sm:text-sm"
+            aria-label={`Gọi tư vấn ${hotline}`}
+          >
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 sm:h-7 sm:w-7">
+              <Phone className="h-3.5 w-3.5" />
+            </span>
+            <span className="truncate">
+              {hotline}
+              <span className="ml-1.5 hidden font-medium opacity-90 sm:inline">— Gọi Tư Vấn</span>
+            </span>
+          </a>
+          {zalo && (
+            <a
+              href={zaloHref(zalo)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex shrink-0 items-center gap-2 text-xs font-bold sm:text-sm"
+              aria-label="Chat Zalo"
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 sm:h-7 sm:w-7">
+                <MessageCircle className="h-3.5 w-3.5" />
+              </span>
+              Chat Zalo
+            </a>
+          )}
+        </div>
+      </section>
 
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </>

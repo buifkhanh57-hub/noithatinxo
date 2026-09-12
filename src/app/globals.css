@@ -44,9 +44,9 @@
 }
 
 /*
-  Nội Thất AVH brand palette — warm earth tones.
-  Primary: deep terracotta-brown (think oak + clay)
-  Accent: warm sand/cream
+  Nội Thất AVH brand palette — white base + red accents + wood grain header.
+  Primary: confident brand red (prices, CTAs, badges)
+  Header/quick-nav: light oak wood grain texture
   No indigo/blue per project rules.
 */
 :root {
@@ -57,8 +57,8 @@
   --card-foreground: oklch(0.22 0.02 50);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.02 50);
-  /* primary: warm terracotta brown */
-  --primary: oklch(0.55 0.13 38);
+  /* primary: brand red — điểm nhấn trên nền trắng */
+  --primary: oklch(0.55 0.22 26);
   --primary-foreground: oklch(0.985 0.005 80);
   /* secondary: cream/sand */
   --secondary: oklch(0.95 0.015 75);
@@ -70,20 +70,20 @@
   --destructive: oklch(0.58 0.22 25);
   --border: oklch(0.90 0.015 75);
   --input: oklch(0.92 0.015 75);
-  --ring: oklch(0.55 0.13 38);
-  --chart-1: oklch(0.55 0.13 38);  /* terracotta */
+  --ring: oklch(0.55 0.22 26);
+  --chart-1: oklch(0.55 0.22 26);  /* brand red */
   --chart-2: oklch(0.62 0.10 130); /* sage green */
   --chart-3: oklch(0.50 0.08 60);  /* walnut */
   --chart-4: oklch(0.70 0.12 85);  /* honey */
   --chart-5: oklch(0.45 0.06 250); /* slate */
   --sidebar: oklch(0.985 0.005 80);
   --sidebar-foreground: oklch(0.22 0.02 50);
-  --sidebar-primary: oklch(0.55 0.13 38);
+  --sidebar-primary: oklch(0.55 0.22 26);
   --sidebar-primary-foreground: oklch(0.985 0.005 80);
   --sidebar-accent: oklch(0.92 0.04 70);
   --sidebar-accent-foreground: oklch(0.30 0.05 45);
   --sidebar-border: oklch(0.90 0.015 75);
-  --sidebar-ring: oklch(0.55 0.13 38);
+  --sidebar-ring: oklch(0.55 0.22 26);
 }
 
 .dark {
@@ -93,8 +93,8 @@
   --card-foreground: oklch(0.96 0.01 80);
   --popover: oklch(0.22 0.015 50);
   --popover-foreground: oklch(0.96 0.01 80);
-  --primary: oklch(0.72 0.14 45);
-  --primary-foreground: oklch(0.18 0.02 50);
+  --primary: oklch(0.66 0.21 26);
+  --primary-foreground: oklch(0.985 0.005 80);
   --secondary: oklch(0.28 0.02 50);
   --secondary-foreground: oklch(0.95 0.01 80);
   --muted: oklch(0.28 0.02 50);
@@ -104,20 +104,20 @@
   --destructive: oklch(0.70 0.20 22);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.72 0.14 45);
-  --chart-1: oklch(0.72 0.14 45);
+  --ring: oklch(0.66 0.21 26);
+  --chart-1: oklch(0.66 0.21 26);
   --chart-2: oklch(0.70 0.10 130);
   --chart-3: oklch(0.60 0.08 60);
   --chart-4: oklch(0.75 0.12 85);
   --chart-5: oklch(0.55 0.06 250);
   --sidebar: oklch(0.22 0.015 50);
   --sidebar-foreground: oklch(0.96 0.01 80);
-  --sidebar-primary: oklch(0.72 0.14 45);
-  --sidebar-primary-foreground: oklch(0.18 0.02 50);
+  --sidebar-primary: oklch(0.66 0.21 26);
+  --sidebar-primary-foreground: oklch(0.985 0.005 80);
   --sidebar-accent: oklch(0.32 0.03 50);
   --sidebar-accent-foreground: oklch(0.95 0.01 80);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.72 0.14 45);
+  --sidebar-ring: oklch(0.66 0.21 26);
 }
 
 @layer base {
@@ -187,6 +187,32 @@
 /* Custom utility: line clamp helpers */
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ----------------------------------------------------------------------------
+ * Wood-grain header texture — light oak surface used by the main header and
+ * the quick category nav (Anh Khoa style). The .wood-surface layer stacks:
+ *   1. the wood photo (public/wood-header.jpg)
+ *   2. a warm cream veil so text stays readable (WCAG) on any screen
+ * ------------------------------------------------------------------------- */
+.wood-surface {
+  background-color: #e8d9c3;
+  background-image:
+    linear-gradient(rgba(253, 249, 241, 0.82), rgba(253, 249, 241, 0.82)),
+    url('/wood-header.jpg');
+  background-size: auto, 480px auto;
+  background-repeat: repeat, repeat;
+  background-position: center;
+}
+/* Stronger veil variant — for the quick-nav strip where many small labels sit */
+.wood-surface-soft {
+  background-color: #f0e6d6;
+  background-image:
+    linear-gradient(rgba(253, 249, 241, 0.9), rgba(253, 249, 241, 0.9)),
+    url('/wood-header.jpg');
+  background-size: auto, 480px auto;
+  background-repeat: repeat, repeat;
+  background-position: center;
+}
 
 /* Smooth fade for view transitions — 60fps GPU-accelerated */
 @keyframes avh-fade-in {

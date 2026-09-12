@@ -8,6 +8,7 @@ import {
 import { toast } from 'sonner'
 
 import { api, ApiError } from '@/lib/api'
+import { flashSaleEnd } from '@/lib/flash-sale'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
 import { CountdownTimer } from '@/components/avh/countdown-timer'
@@ -173,12 +174,8 @@ export function ShopView() {
       ? 'Hàng mới về'
       : activeCategory?.name || (navQ ? `Tìm kiếm: "${navQ}"` : 'Tất cả sản phẩm')
 
-  // Stable flash sale countdown target (next ~23h59m)
-  const flashTarget = useMemo(() => {
-    const d = new Date()
-    d.setHours(d.getHours() + 23, 59, 59, 999)
-    return d
-  }, [navFlash])
+  // Day-anchored flash deadline from lib/flash-sale — truly counts down & expires
+  const flashTarget = flashSaleEnd()
 
   const hasActiveFilters =
     !!navCat || !!navQ || navFlash || navIsNew ||
@@ -277,17 +274,17 @@ export function ShopView() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Flash sale banner */}
+      {/* Flash sale banner — red ticket, same style as homepage */}
       {navFlash && (
-        <div className="mb-4 overflow-hidden rounded-xl border-2 border-red-500/40 bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30">
-          <div className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-rose-500 shadow-md">
+          <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <Flame className="h-6 w-6 text-red-600" />
-              <h1 className="text-lg font-bold text-red-700 dark:text-red-400 sm:text-2xl">⚡ Flash Sale Đang Diễn Ra</h1>
-              <Badge className="bg-red-600 text-white">Cực sốc</Badge>
+              <Flame className="h-6 w-6 text-amber-300" />
+              <h1 className="text-lg font-extrabold text-white sm:text-2xl">FLASH SALE ĐANG DIỄN RA</h1>
+              <Badge className="bg-white text-red-600">Cực sốc</Badge>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-red-700 dark:text-red-400">Kết thúc trong</span>
+              <span className="text-xs font-semibold text-white/90">Kết thúc sau</span>
               <CountdownTimer target={flashTarget} variant="dark" size="sm" />
             </div>
           </div>

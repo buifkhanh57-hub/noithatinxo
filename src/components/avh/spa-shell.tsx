@@ -34,6 +34,7 @@ import { Header } from '@/components/avh/header'
 import { Footer } from '@/components/avh/footer'
 import { CartDrawer } from '@/components/avh/cart-drawer'
 import { ChatWidget } from '@/components/avh/chat-widget'
+import { FloatingContact } from '@/components/avh/floating-contact'
 import { CompareTray } from '@/components/avh/compare-tray'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { routeFromLocation } from '@/lib/view-routes'
@@ -362,6 +363,7 @@ export function AvhShell({ route }: { route?: ShellRoute }) {
       <Footer />
       <CartDrawer />
       <ChatWidget />
+      <FloatingContact />
       <CompareTray />
       {/* Back to top — appears when scrolled down */}
       <BackToTop />

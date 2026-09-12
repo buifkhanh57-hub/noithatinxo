@@ -7,10 +7,13 @@ export function CountdownTimer({
   target,
   variant = 'dark',
   size = 'md',
+  onExpired,
 }: {
   target: Date | string
   variant?: 'dark' | 'light' | 'inline'
   size?: 'sm' | 'md' | 'lg'
+  /** Called once when the countdown reaches zero (flash sale truly ends). */
+  onExpired?: () => void
 }) {
   const t = typeof target === 'string' ? new Date(target) : target
   const [remaining, setRemaining] = useState(getRemaining(t))
@@ -19,6 +22,10 @@ export function CountdownTimer({
     const id = setInterval(() => setRemaining(getRemaining(t)), 1000)
     return () => clearInterval(id)
   }, [t.getTime()])
+
+  useEffect(() => {
+    if (remaining.total <= 0) onExpired?.()
+  }, [remaining.total <= 0])
 
   const { d, h, m, s } = remaining
   const boxes = [
@@ -38,10 +45,15 @@ export function CountdownTimer({
   }
 
   const sizeCls = size === 'sm' ? 'h-7 w-7 text-xs' : size === 'lg' ? 'h-12 w-12 text-xl' : 'h-9 w-9 text-sm'
-  const bgCls = variant === 'dark' ? 'bg-foreground text-background' : 'bg-primary text-primary-foreground'
+  // 'dark'  = white boxes + red digits → sits on the red flash-sale banner
+  // 'light' = red boxes + white digits → sits on white surfaces
+  const bgCls =
+    variant === 'dark'
+      ? 'bg-white text-red-600 shadow-sm'
+      : 'bg-primary text-primary-foreground'
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1" role="timer" aria-label="Thời gian còn lại">
       {boxes.map((b, i) => (
         <div key={b.label} className="flex items-center gap-1">
           <div className={`flex ${sizeCls} items-center justify-center rounded-md ${bgCls} font-mono font-bold tabular-nums`}>
@@ -60,7 +72,7 @@ function getRemaining(t: Date) {
   const h = Math.floor((diff % 86400000) / 3600000)
   const m = Math.floor((diff % 3600000) / 60000)
   const s = Math.floor((diff % 60000) / 1000)
-  return { d, h, m, s }
+  return { d, h, m, s, total: diff }
 }
 
 function pad(n: number) {

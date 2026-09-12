@@ -19,7 +19,7 @@ export interface SettingDef {
 export const SETTING_DEFS: SettingDef[] = [
   // --- Branding ---
   { key: 'brand_name', label: 'Tên thương hiệu', group: 'branding', type: 'text', defaultValue: 'Nội Thất AVH' },
-  { key: 'brand_tagline', label: 'Khẩu hiệu (tagline)', group: 'branding', type: 'text', defaultValue: 'Nội thất & Trang trí nhà cửa' },
+  { key: 'brand_tagline', label: 'Khẩu hiệu (tagline)', group: 'branding', type: 'text', defaultValue: 'Sản xuất trực tiếp - Không qua trung gian' },
   { key: 'brand_logo_url', label: 'Logo (URL hoặc upload)', group: 'branding', type: 'image', defaultValue: '', help: 'Để trống nếu dùng chữ AVH mặc định' },
   { key: 'brand_description', label: 'Mô tả thương hiệu (footer)', group: 'branding', type: 'textarea', defaultValue: 'Nội Thất AVH chuyên cung cấp nội thất và phụ kiện trang trí nhà cửa với thiết kế hiện đại, chất lượng đảm bảo và dịch vụ hậu mãi tận tâm. Tầm nhìn: mỗi gia đình Việt đều có một tổ ấm đẹp, ấm áp và đúng gu.' },
 
