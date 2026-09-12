@@ -689,3 +689,20 @@ Stage Summary:
 - Header admin: gỗ óc chó sậm sang trọng + chữ kem trắng — hết "khó chịu", logo/nội dung nổi bật rõ; khách không đổi (trắng trong suốt).
 - Asset: public/wood-admin-walnut.jpg (206KB); đã xoá wood-real-oak-3.jpg, wood-header.jpg, wood-oak-admin.jpg.
 - Commit push → Vercel auto deploy.
+
+---
+Task ID: 18
+Agent: Z.ai Code (main)
+Task: Chủ shop chê gỗ óc chó "tối quá, muốn sáng hơn" → nâng tông gỗ lên mật ong sáng ấm.
+
+Work Log:
+- Sinh 2 ứng viên sáng hơn (z-ai image 1344x768): honey oak (avg #845939, contrast chữ kem 5.63:1) & natural oak rất sáng (avg #bf9975, contrast chỉ 2.43:1 — loại, sẽ lặp lỗi "chữ chìm").
+- Chọn honey oak. Đo 10 lát cắt dọc ảnh (mô phỏng cover 1440×64) → vùng 5-6% từ trên sáng nhất & vân êm nhất (#966a46).
+- Tái xử lý asset: Brightness 1.15 + Color 1.05 + Contrast 1.02 → public/wood-admin-oak.jpg (238KB, avg #99643d).
+- CSS: position center 6%, veil tối giảm còn 8–30%; header.tsx tagline admin #f6ead0.
+- Verify pixel: gỗ render cũ lum 0.178 → mới 0.364 (sáng gấp đôi); admin desktop + mobile thấy gỗ vàng ấm sáng, chữ kem rõ; guest hasWood=false, bg trắng mờ giữ nguyên; không lỗi console; lint sạch.
+
+Stage Summary:
+- Header admin: gỗ SỒI MẬT ONG sáng ấm (lum 0.364) — điểm cân bằng giữa óc chó bị chê "tối" và bảng vàng nhạt bị chê "nhợt/rối".
+- Asset: public/wood-admin-oak.jpg; xoá wood-admin-walnut.jpg.
+- Commit push → Vercel auto deploy.

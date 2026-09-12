@@ -189,26 +189,25 @@
 .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ----------------------------------------------------------------------------
- * ADMIN-ONLY header wood — premium dark walnut (gỗ óc chó), vân ngang thật,
- * AI-generated photorealistic texture (public/wood-admin-walnut.jpg, 1344×768).
- * `cover` + no-repeat: vân gỗ giữ tỉ lệ thật, không bị kéo giật/ghép mảnh.
- * Lớp phủ tối nhẹ giúp nền sâu dịu mắt; chữ kem/trắng tương phản ~12:1 (WCAG AAA)
- * và logo/nút bấm thật sự NỔI trên nền gỗ. Khách không bao giờ thấy lớp này
- * (header.tsx chỉ áp cho role ADMIN).
+ * ADMIN-ONLY header wood — honey oak (gỗ sồi mật ong) tông VÀNG SÁNG ẤM,
+ * vân cathedral thật, AI photorealistic (public/wood-admin-oak.jpg, 1344×768,
+ * đã chỉnh sáng +15%). `cover` + no-repeat: vân giữ tỉ lệ thật, không ghép mảnh.
+ * position 6% = lát cắt sáng nhất (vùng golden top). Veil 8–30% giữ chữ kem ~4.5–5:1.
+ * Khách không bao giờ thấy lớp này (header.tsx chỉ áp cho role ADMIN).
  * ------------------------------------------------------------------------- */
 .wood-surface-admin {
-  background-color: #4a2a18;
+  background-color: #99643d;
   background-image:
     linear-gradient(
       to bottom,
-      rgba(12, 6, 2, 0.26),
-      rgba(12, 6, 2, 0.08) 38%,
-      rgba(12, 6, 2, 0.14) 72%,
-      rgba(8, 4, 1, 0.38)
+      rgba(50, 28, 10, 0.2),
+      rgba(50, 28, 10, 0.08) 40%,
+      rgba(50, 28, 10, 0.14) 72%,
+      rgba(35, 18, 5, 0.3)
     ),
-    url('/wood-admin-walnut.jpg');
+    url('/wood-admin-oak.jpg');
   background-size: auto, cover;
-  background-position: center, center 45%;
+  background-position: center, center 6%;
   background-repeat: repeat, no-repeat;
 }
 

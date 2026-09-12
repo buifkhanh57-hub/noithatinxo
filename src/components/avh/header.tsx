@@ -314,7 +314,7 @@ export function Header() {
               <span
                 className={cn(
                   'max-w-[130px] truncate text-[9px] font-semibold uppercase tracking-wider sm:max-w-none sm:text-[10px]',
-                  isWood ? 'text-[#d9c5a5]' : 'text-muted-foreground',
+                  isWood ? 'text-[#f6ead0]' : 'text-muted-foreground',
                 )}
               >
                 {brandTagline}
