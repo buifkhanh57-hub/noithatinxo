@@ -788,3 +788,23 @@ Stage Summary:
 - Chữ "nổi bật" cạnh MENU đã xóa — tiêu đề section đúng literal "MENU".
 - LƯU Ý cho chủ shop: các text Giao toàn quốc/Free ship… vẫn còn ở FOOTER (cuối trang) — chủ shop chỉ yêu cầu xóa phần ĐẦU TRANG nên giữ nguyên footer.
 - Commit e79e312 push → Vercel deploy SUCCESS → verified live.
+
+---
+Task ID: 23
+Agent: Z.ai Code (main)
+Task: Xử lý tiếp "vercel bị lỗi build" — thực chất là Railway service "vivacious-adaptation" fail 100% commit (Vercel = host thật của noithatavh.info.vn, luôn success).
+
+Work Log:
+- GitHub Deployments API phân biệt 2 nguồn deploy: "Production" (Vercel — server: Vercel, x-vercel-id trên domain chính) và "vivacious-adaptation / production" (Railway). Lịch sử: Vercel success từ ea03627 (fix TS Task 21); Railway FAILURE ở mọi commit (a72bcb9, be54cee, e79e312, 7ab30fd) kể cả commit build tốt trên Vercel.
+- Vá 3 nguyên nhân khả dĩ từ phía repo (đều vô hại cho Vercel):
+  (1) src/lib/db.ts khởi tạo PrismaClient lúc import → thiếu DATABASE_URL lúc build là ném lỗi toàn route. Viết lại LAZY qua Proxy: chỉ tạo client ở lần truy cập đầu khi runtime, kiểu dữ liệu giữ nguyên PrismaClient.
+  (2) Thêm nixpacks.toml: NIXPACKS_NODE_VERSION=22 (Next 16 yêu cầu Node ≥ 20.9, nixpacks mặc định cũ hơn).
+  (3) package.json start: "next start -p ${PORT:-3000}" (Railway healthcheck theo $PORT, trước đây hardcode 3000).
+- Verify: tsc + lint sạch; smoke test API local sau HMR (/api/products, /api/categories trả data chuẩn); clone-build commit cf9e8ef PASS; push → Vercel 6412806414 = SUCCESS, Railway 6412792651 = VẪN FAILURE (cần log trong dashboard Railway mới chẩn đoán được tiếp).
+- Verify production sau fix db: /api/products + /api/categories OK (lazy db hoạt động với Postgres Supabase), homepage 200, chunk hash build cf9e8ef có trên live.
+
+Stage Summary:
+- Web chính noithatavh.info.vn (Vercel): build OK, chạy bản mới nhất cf9e8ef, API hoạt động chuẩn.
+- Railway "vivacious-adaptation" vẫn fail — KHÔNG phục vụ web khách thấy. Khuyến nghị: nếu không dùng Railway thì xóa service/ngắt auto-deploy; muốn dùng thì cần log Railway hoặc cấp Railway token.
+- db.ts giờ an toàn build-time (lazy) — benefit cả 2 platform.
+- Commit cf9e8ef push → Vercel SUCCESS.
