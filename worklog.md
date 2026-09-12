@@ -706,3 +706,24 @@ Stage Summary:
 - Header admin: gỗ SỒI MẬT ONG sáng ấm (lum 0.364) — điểm cân bằng giữa óc chó bị chê "tối" và bảng vàng nhạt bị chê "nhợt/rối".
 - Asset: public/wood-admin-oak.jpg; xoá wood-admin-walnut.jpg.
 - Commit push → Vercel auto deploy.
+
+---
+Task ID: 19
+Agent: Z.ai Code (main)
+Task: (1) Fix lỗi "sửa giá xong mà vào trang sản phẩm vẫn thấy giá cũ"; (2) thêm ô nhập MÀU SẮC khi thêm/sửa sản phẩm; (3) đổi section "Danh mục nổi bật" thành "MENU" (lưới ô tên kiểu anhkhoa theo ảnh khách gửi).
+
+Work Log:
+- Root cause giá: POST tạo SP luôn sinh 1 biến thể mặc định mang giá gốc; PATCH chỉ cập nhật Product.basePrice KHÔNG đụng biến thể; trang chi tiết hiển thị selectedVariant.price ?? basePrice → giá biến thể cũ luôn thắng.
+- Fix PATCH route.ts: khi basePrice đổi → productVariant.updateMany({price: product.basePrice cũ} → giá mới). Biến thể đã có giá riêng không bị ghi đè.
+- Fix POST route.ts: có `colors` → tạo 1 biến thể/màu (cùng giá, cùng tồn kho); không có → 1 biến thể mặc định.
+- PATCH colors: xoá biến thể có màu, tạo lại theo danh sách mới (giữ tồn kho màu cũ còn lại, giá = basePrice mới, sku slug-i tránh trùng unique).
+- admin-view ProductForm: thêm state colors + chip input (Enter/nút Thêm, datalist gợi ý Be/Kem/Trắng/Đen/Xám/Nâu/Nâu gỗ/Xanh rêu/Đỏ đô, nút X xoá chip); prefill từ product.colors; payload gửi colors. AdminProduct interface + colors?: string[].
+- product-view: colorOptions = unique([...variant colors, ...product.colors]) — SP cũ có colors JSON nhưng không có biến thể màu vẫn hiện chip.
+- home-view: "Danh mục nổi bật" → "MENU", grid tile tên thuần (4 cột mobile / 6 desktop, border, hover đổi đỏ thương hiệu) đúng như ảnh anhkhoa khách gửi.
+- E2E (agent-browser, admin thật): sửa giá 2.900.000 → 3.150.000 + thêm màu Be → lưu → trang SP hiện 3.150.000₫ + 3 chip màu (Gỗ sáng/Trắng/Be); admin table + dialog prefill đúng; trả lại dữ liệu gốc (2.900.000₫, 2 màu) → verify round-trip OK. MENU grid: desktop + mobile 4 cột, guest cũng thấy. Lint sạch.
+
+Stage Summary:
+- Sửa giá giờ hiện NGAY trên trang sản phẩm (sync biến thể tự động).
+- Form sản phẩm có ô Màu sắc (chip) — màu tạo lựa chọn cho khách, giá áp chung.
+- Trang chủ: section MENU lưới danh mục kiểu anhkhoa thay "Danh mục nổi bật".
+- Commit push → Vercel auto deploy.

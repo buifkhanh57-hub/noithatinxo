@@ -74,15 +74,33 @@ export async function POST(req: NextRequest) {
       data: { productId: product.id, url: String(imageUrl), type: 'image' },
     })
   }
-  // create one default variant
-  await db.productVariant.create({
-    data: {
-      productId: product.id,
-      sku: slug.toUpperCase(),
-      price: Number(basePrice),
-      stock: Number(stock),
-    },
-  })
+  // create variants — one PER COLOR if `colors` provided (khách chọn màu, giá
+  // theo sản phẩm), ngược lại một biến thể mặc định không màu. Giá biến thể
+  // LUÔN khớp basePrice tại thời điểm tạo (trang chi tiết hiển thị giá biến thể,
+  // không phải basePrice — đây là nguồn gốc lỗi "sửa giá mà khách thấy giá cũ").
+  const colorList = Array.isArray(colors) ? colors.map((c) => String(c).trim()).filter(Boolean) : []
+  if (colorList.length) {
+    for (let i = 0; i < colorList.length; i++) {
+      await db.productVariant.create({
+        data: {
+          productId: product.id,
+          sku: `${slug.toUpperCase()}-${i + 1}`,
+          color: colorList[i],
+          price: Number(basePrice),
+          stock: Number(stock),
+        },
+      })
+    }
+  } else {
+    await db.productVariant.create({
+      data: {
+        productId: product.id,
+        sku: slug.toUpperCase(),
+        price: Number(basePrice),
+        stock: Number(stock),
+      },
+    })
+  }
   return NextResponse.json({ success: true, data: { id: product.id, slug } })
 }
 
@@ -96,13 +114,22 @@ export async function PATCH(req: NextRequest) {
   const allowed = ['name', 'brand', 'description', 'basePrice', 'comparePrice', 'isFeatured', 'isNew', 'isFlashSale', 'published', 'categoryId']
   const data: Record<string, unknown> = {}
   for (const k of allowed) if (k in body) data[k] = body[k]
-  // recompute discount
+  // recompute discount + ĐỒNG BỘ GIÁ BIẾN THỂ (fix: sửa giá bên trang quản trị
+  // nhưng khách vẫn thấy giá cũ vì trang chi tiết hiển thị GIÁ BIẾN THỂ,
+  // không phải basePrice). Chỉ đẩy giá những biến thể vẫn đang mang giá gốc
+  // cũ — biến thể đã được chỉnh giá riêng (nâng cao) không bị ghi đè.
   if ('basePrice' in data || 'comparePrice' in data) {
     const product = await db.product.findUnique({ where: { id } })
     if (product) {
       const base = Number(data.basePrice ?? product.basePrice)
       const cmp = data.comparePrice !== undefined ? Number(data.comparePrice) : product.comparePrice
       data.discountPct = cmp ? Math.round(((Number(cmp) - base) / Number(cmp)) * 100) : 0
+      if ('basePrice' in data && Number(data.basePrice) !== product.basePrice) {
+        await db.productVariant.updateMany({
+          where: { productId: id, price: product.basePrice },
+          data: { price: Number(data.basePrice) },
+        })
+      }
     }
   }
   if ('tags' in body) data.tags = JSON.stringify(body.tags)
@@ -110,6 +137,27 @@ export async function PATCH(req: NextRequest) {
   if ('colors' in body) data.colors = JSON.stringify(body.colors)
   if ('materials' in body) data.materials = JSON.stringify(body.materials)
   const updated = await db.product.update({ where: { id }, data })
+  // Đồng bộ biến thể theo danh sách màu mới: xoá biến thể có màu cũ, tạo lại
+  // theo màu mới (giữ nguyên tồn kho của màu vẫn còn, giá = basePrice mới).
+  if ('colors' in body) {
+    const colorList = Array.isArray(body.colors) ? body.colors.map((c: unknown) => String(c).trim()).filter(Boolean) : []
+    const existing = await db.productVariant.findMany({ where: { productId: id } })
+    const defaultVariant = existing.find((v) => !v.color)
+    const stockByColor = new Map(existing.filter((v) => v.color).map((v) => [v.color as string, v.stock]))
+    await db.productVariant.deleteMany({ where: { productId: id, color: { not: null } } })
+    for (let i = 0; i < colorList.length; i++) {
+      const c = colorList[i]
+      await db.productVariant.create({
+        data: {
+          productId: id,
+          sku: `${updated.slug.toUpperCase()}-${i + 1}`,
+          color: c,
+          price: Number(data.basePrice ?? updated.basePrice),
+          stock: stockByColor.get(c) ?? defaultVariant?.stock ?? 10,
+        },
+      })
+    }
+  }
   return NextResponse.json({ success: true, data: { id: updated.id } })
 }
 

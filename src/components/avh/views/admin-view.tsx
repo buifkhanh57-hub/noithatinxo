@@ -63,6 +63,8 @@ import {
   FileEdit,
   History,
   RotateCcw,
+  Palette,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -184,6 +186,7 @@ interface AdminProduct {
   brand?: string
   basePrice: number
   comparePrice?: number | null
+  colors?: string[]
   isFeatured?: boolean
   isNew?: boolean
   isFlashSale?: boolean
@@ -1207,6 +1210,8 @@ function ProductFormDialog({
   const [description, setDescription] = useState('')
   const [basePrice, setBasePrice] = useState('')
   const [comparePrice, setComparePrice] = useState('')
+  const [colors, setColors] = useState<string[]>([])
+  const [colorDraft, setColorDraft] = useState('')
   const [media, setMedia] = useState<MediaItem[]>([])
   const [stock, setStock] = useState('0')
   const [isFeatured, setIsFeatured] = useState(false)
@@ -1223,6 +1228,8 @@ function ProductFormDialog({
       setBrand(product.brand || 'AVH Home')
       setBasePrice(String(product.basePrice))
       setComparePrice(product.comparePrice ? String(product.comparePrice) : '')
+      setColors(Array.isArray(product.colors) ? product.colors : [])
+      setColorDraft('')
       setMedia(product.image ? [{ url: product.image, type: 'image' as const, name: 'existing' }] : [])
       setCategoryId(product.category?.id || '')
       setIsFeatured(!!product.isFeatured)
@@ -1235,6 +1242,8 @@ function ProductFormDialog({
       setBrand('AVH Home')
       setBasePrice('')
       setComparePrice('')
+      setColors([])
+      setColorDraft('')
       setMedia([])
       setCategoryId(categories?.[0]?.id || '')
       setIsFeatured(false)
@@ -1261,6 +1270,7 @@ function ProductFormDialog({
         description: description.trim(),
         basePrice: Number(basePrice),
         comparePrice: comparePrice ? Number(comparePrice) : null,
+        colors: colors.map((c) => c.trim()).filter(Boolean),
         media: media.map((m) => ({ url: m.url, type: m.type })),
         imageUrl: media[0]?.url, // backward-compat fallback
         stock: Number(stock) || 0,
@@ -1357,6 +1367,72 @@ function ProductFormDialog({
                 min={0}
               />
             </div>
+          </div>
+          {/* Màu sắc — mỗi màu tạo 1 lựa chọn cho khách (đồng bộ giá theo Giá bán) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="pf-colors" className="flex items-center gap-1.5">
+              <Palette className="h-3.5 w-3.5 text-primary" />
+              Màu sắc (tuỳ chọn)
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="pf-colors"
+                value={colorDraft}
+                onChange={(e) => setColorDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    const v = colorDraft.trim()
+                    if (v && !colors.includes(v)) setColors([...colors, v])
+                    setColorDraft('')
+                  }
+                }}
+                placeholder="Gõ tên màu rồi nhấn Enter (vd: Be, Nâu, Xám…)"
+                list="pf-color-suggest"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0"
+                onClick={() => {
+                  const v = colorDraft.trim()
+                  if (v && !colors.includes(v)) setColors([...colors, v])
+                  setColorDraft('')
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Thêm
+              </Button>
+            </div>
+            <datalist id="pf-color-suggest">
+              {['Be', 'Kem', 'Trắng', 'Đen', 'Xám', 'Nâu', 'Nâu gỗ', 'Xanh rêu', 'Đỏ đô'].map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+            {colors.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {colors.map((c) => (
+                  <span
+                    key={c}
+                    className="flex items-center gap-1 rounded-full border bg-accent/60 px-2.5 py-1 text-xs font-medium text-accent-foreground"
+                  >
+                    {c}
+                    <button
+                      type="button"
+                      onClick={() => setColors(colors.filter((x) => x !== c))}
+                      aria-label={`Xoá màu ${c}`}
+                      className="rounded-full p-0.5 transition hover:bg-background"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground">
+              Mỗi màu là một lựa chọn khách có thể chọn ở trang sản phẩm. Giá bán áp dụng chung cho mọi màu.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

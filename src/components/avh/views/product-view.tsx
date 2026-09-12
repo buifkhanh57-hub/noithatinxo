@@ -176,7 +176,17 @@ function ProductContent({ product }: { product: ProductDetail }) {
   const [activeMedia, setActiveMedia] = useState(0)
 
   // --- Variant state ---
-  const colorOptions = useMemo(() => unique(product.variants.map((v) => v.color).filter(Boolean)) as string[], [product.variants])
+  // Màu = gộp (màu trên biến thể) + (màu khai báo ở sản phẩm) — SPA cũ chỉ lưu
+  // product.colors nên vẫn phải hiện đủ; màu không có biến thể riêng vẫn dùng
+  // giá biến thể mặc định.
+  const colorOptions = useMemo(
+    () =>
+      unique([
+        ...product.variants.map((v) => v.color).filter(Boolean),
+        ...product.colors,
+      ]) as string[],
+    [product.variants, product.colors],
+  )
   const materialOptions = useMemo(() => unique(product.variants.map((v) => v.material).filter(Boolean)) as string[], [product.variants])
   const sizeOptions = useMemo(() => unique(product.variants.map((v) => v.size).filter(Boolean)) as string[], [product.variants])
 
