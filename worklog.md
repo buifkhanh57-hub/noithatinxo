@@ -617,3 +617,21 @@ Stage Summary:
 - Flash sale giờ có deadline thật trong ngày, hết giờ là ẩn block (sẽ tự mở lại chu kỳ ngày sau).
 - Lưu ý Vercel: sau pull lần này cần Redeploy; schema.prisma đã đảm bảo postgresql; local dev dùng `bun run db:dev`.
 - Cần chủ shop cập nhật Setting hotline/social_zalo trong trang Quản trị nếu muốn đổi số (mặc định 1900 1234 / 0938123456).
+
+---
+Task ID: 14
+Agent: Z.ai Code (main)
+Task: Thanh quảng cáo đầu trang → thay bằng Hotline 1900 1234 + Chat Zalo; số Zalo/hotline chỉnh được ở Cài đặt; giữ nguyên header gỗ + danh mục Phòng Khách/Phòng Ngủ ở phần đầu.
+
+Work Log:
+- header.tsx: thanh đỏ trên cùng (trước đây là dòng quảng cáo announcement_text) giờ = Hotline (tel:) bên trái + "Chat Zalo" (zalo.me/<sđt>) bên phải, bấm được; cả 2 số đọc từ settings-store.
+- Bỏ thanh đỏ liên hệ trùng lặp dưới quick-nav (trước đây hotline+zalo hiện 2 nơi → giờ chỉ trên đầu trang + trong menu 3 gạch).
+- settings.ts: social_zalo chuyển sang nhóm 'contact' ngay cạnh contact_hotline (label "Số Zalo nhận tin nhắn", help rõ: zalo.me/<số>, để trống để ẩn nút); xoá 3 def announcement_* và group 'Quảng cáo header'.
+- settings-store.ts: bỏ announcement_* khỏi DEFAULTS; admin-view.tsx: dọn GROUP_ICONS/GROUP_LABELS + import Megaphone, mô tả tab Cài đặt mới.
+- Browser E2E: mobile 390px + desktop 1440px — thanh đỏ "Hotline: 1900 1234 — Gọi tư vấn & lắp đặt | Chat Zalo" ✓; href tel:19001234 + zalo.me/0938123456 ✓; quick-nav đủ 6 danh mục + ô "Tất cả" đỏ ✓; footer vẫn stick ✓.
+- Admin → Cài đặt → nhóm "Liên hệ (Hotline + Zalo)": sửa Hotline thành 1900 6789 → Lưu → thanh đỏ đầu trang đổi NGAY tức thì ✓ → trả lại 1900 1234 ✓.
+- Lint sạch; commit 17b7dcc push → Vercel auto deploy.
+
+Stage Summary:
+- Header giờ đúng yêu cầu: (1) phần đầu hiển thị như mẫu cũ nhưng nền gỗ — MENU + AVH + lưới danh mục Phòng Khách/Phòng Ngủ/Phòng Ăn/Tủ & Kệ/Văn Phòng/Đèn Trang Trí; (2) hotline 1900 1234 + Chat Zalo nằm trên thanh đỏ đầu trang (thay header quảng cáo); (3) chủ shop đổi số hotline/Zalo tại Quản trị → Cài đặt → Liên hệ, lưu là chạy ngay không cần deploy.
+- Lưu ý production (Supabase): hàng Setting cũ còn key announcement_text/show_* trong DB — không còn hiển thị, vô hại; có thể xoá tuỳ ý.
