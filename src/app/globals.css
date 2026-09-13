@@ -273,6 +273,55 @@
 }
 
 /* ----------------------------------------------------------------------------
+ * Animation thêm giỏ hàng + menu (yêu cầu chủ shop: "thêm animation đẹp mắt")
+ * ------------------------------------------------------------------------- */
+
+/* Giỏ hàng nhún khi flyer đáp vào (class do lib/fly-to-cart.ts thêm) */
+@keyframes avh-cart-bounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35) rotate(-8deg); }
+  55% { transform: scale(0.9) rotate(5deg); }
+  75% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.avh-cart-bounce {
+  animation: avh-cart-bounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+/* Lưới ô MENU xổ xuống dưới header (thay vì nhảy đột ngột) */
+@keyframes avh-menu-drop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.avh-menu-drop {
+  animation: avh-menu-drop 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
+  will-change: opacity, transform;
+}
+
+/* Gạch chân chạy mượt cho link danh mục trên thanh menu ngang */
+.avh-nav-link {
+  position: relative;
+}
+.avh-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.avh-nav-link:hover::after,
+.avh-nav-link[data-active='true']::after {
+  transform: scaleX(1);
+}
+
+/* ----------------------------------------------------------------------------
  * Body scroll lock — when a Radix Dialog / Sheet / Drawer is open, Radix marks
  * <body data-scroll-locked> but does not always apply `overflow: hidden`
  * (depends on the framework version / Turbopack environment). On iOS Safari

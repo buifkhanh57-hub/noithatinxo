@@ -24,6 +24,7 @@ import { useAuthStore } from '@/lib/stores/auth-store'
 import { useSettingsStore } from '@/lib/stores/settings-store'
 import { AuthDialog } from './auth-dialog'
 import { useMounted } from '@/hooks/use-mounted'
+import { orderCategories } from '@/lib/category-order'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -68,10 +69,13 @@ export function Header() {
   const view = useUIStore((s) => s.view)
   const viewParams = useUIStore((s) => s.params)
 
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categoriesRaw } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: () => api.get('/api/categories'),
   })
+  // Thứ tự CHUẨN theo ảnh mẫu chủ shop (Đèn → Phòng Ăn → Phòng Khách →
+  // Phòng Ngủ → Tủ & Kệ → Văn Phòng) — dùng chung cho mọi nơi hiển thị
+  const categories = orderCategories(categoriesRaw ?? [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -348,7 +352,7 @@ export function Header() {
             ô viền bo tròn tên danh mục, ô đang xem nền đỏ. Nằm TRONG header
             sticky nên mở lúc nào cũng thấy ngay, không cần cuộn lên đầu. */}
         {menuGridOpen && (
-          <div id="avh-menu-grid" className={cn('border-t px-3 py-3 sm:px-4', isWood ? 'border-white/15 bg-black/20' : 'border-border bg-background')}>
+          <div id="avh-menu-grid" className={cn('avh-menu-drop border-t px-3 py-3 sm:px-4', isWood ? 'border-white/15 bg-black/20' : 'border-border bg-background')}>
             <nav aria-label="Lưới danh mục MENU">
               <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 sm:grid-cols-6">
                 {categories?.map((c) => {
@@ -417,36 +421,45 @@ export function Header() {
         )}
       </header>
 
-      {/* MENU BAR — thanh menu danh mục nằm ở ĐẦU TRANG, ngay dưới header
-          (theo ảnh mẫu chủ shop gửi kèm: menu ngang ở đầu trang, KHÔNG phải
-          thay thế section danh mục ở giữa trang chủ).
-          Mobile: cuộn ngang, ẩn scrollbar cho gọn. */}
-      <nav aria-label="MENU danh mục sản phẩm" className="border-b border-border/70 bg-card">
+      {/* MENU BAR — thanh menu danh mục nằm ở ĐẦU TRANG, ngay dưới header,
+          đúng như ảnh mẫu chủ shop gửi (anhkhoa): ☰ MENU chữ ĐỎ đậm + vạch
+          ngăn dọc, rồi các danh mục xếp ngang ĐÈN TRANG TRÍ → PHÒNG ĂN →
+          PHÒNG KHÁCH → PHÒNG NGỦ → TỦ & KỆ → VĂN PHÒNG (thứ tự chung trong
+          lib/category-order.ts). Mobile: cuộn ngang, ẩn scrollbar cho gọn. */}
+      <nav aria-label="MENU danh mục sản phẩm" className="border-b border-border/70 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
         <div className="mx-auto flex max-w-7xl items-stretch overflow-x-auto px-2 [scrollbar-width:none] sm:px-4 [&::-webkit-scrollbar]:hidden">
           <button
             onClick={() => setMenuGridOpen((o) => !o)}
             aria-expanded={menuGridOpen}
             aria-label="Mở/đóng lưới danh mục"
-            className="mr-1 flex shrink-0 items-center gap-1.5 border-r border-border/70 pr-2.5 text-xs font-extrabold uppercase tracking-wide text-primary transition hover:text-primary/80 sm:text-sm"
+            className="mr-1 flex shrink-0 items-center gap-1.5 border-r border-border/70 pr-3 text-xs font-extrabold uppercase tracking-wide text-red-600 transition hover:text-red-700 sm:text-sm"
           >
-            <Menu className="h-4 w-4" strokeWidth={2.5} />
+            <Menu className="h-4 w-4 text-red-600" strokeWidth={2.75} />
             Menu
           </button>
           <button
             onClick={() => go('shop')}
-            className="shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/85 transition hover:text-primary sm:text-sm"
+            data-active={view === 'shop' && !viewParams.cat}
+            className="avh-nav-link shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/90 transition hover:text-primary sm:text-sm"
           >
             Tất cả sản phẩm
           </button>
-          {categories?.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => go('shop', { cat: c.slug })}
-              className="shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/85 transition hover:text-primary sm:text-sm"
-            >
-              {c.name}
-            </button>
-          ))}
+          {categories.map((c) => {
+            const active = view === 'shop' && viewParams.cat === c.slug
+            return (
+              <button
+                key={c.id}
+                onClick={() => go('shop', { cat: c.slug })}
+                data-active={active}
+                className={cn(
+                  'avh-nav-link shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold transition sm:text-sm',
+                  active ? 'text-primary' : 'text-foreground/90 hover:text-primary',
+                )}
+              >
+                {c.name}
+              </button>
+            )
+          })}
         </div>
       </nav>
 

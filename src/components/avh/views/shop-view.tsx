@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 
 import { api, ApiError } from '@/lib/api'
 import { flashSaleEnd } from '@/lib/flash-sale'
+import { orderCategories } from '@/lib/category-order'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
 import { CountdownTimer } from '@/components/avh/countdown-timer'
@@ -320,7 +321,7 @@ export function ShopView() {
                   onSearchInputChange={(v) => setSearchInput(v)}
                   navCat={navCat}
                   onNavCat={(s) => handleCategoryClick(s)}
-                  categories={categories ?? []}
+                  categories={orderCategories(categories ?? [])}
                   materials={materials}
                   onToggleMaterial={(m) => setMaterials((l) => toggleArray(l, m))}
                   colors={colors}
@@ -363,7 +364,7 @@ export function ShopView() {
               onSearchInputChange={(v) => setSearchInput(v)}
               navCat={navCat}
               onNavCat={(s) => handleCategoryClick(s)}
-              categories={categories ?? []}
+              categories={orderCategories(categories ?? [])}
               materials={materials}
               onToggleMaterial={(m) => setMaterials((l) => toggleArray(l, m))}
               colors={colors}

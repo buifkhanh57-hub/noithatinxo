@@ -18,6 +18,7 @@ import { useCompareStore } from '@/lib/stores/compare-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { useRecentStore } from '@/lib/stores/recent-store'
 import { formatVND, discountPct } from '@/lib/format'
+import { flyToCart } from '@/lib/fly-to-cart'
 import { productUrl } from '@/lib/site-url'
 import { StarRating } from '@/components/avh/star-rating'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
@@ -268,9 +269,18 @@ function ProductContent({ product }: { product: ProductDetail }) {
     })
     if (buyNow) {
       setView('checkout')
-    } else {
-      openCart()
+      return
     }
+    // Yêu cầu chủ shop: ảnh sản phẩm PHẢI bay lấp lánh vào giỏ hàng (header)
+    // XONG MỚI mở menu giỏ hàng để đặt mua. Không bay được (tab đặc biệt,
+    // reduced-motion…) → mở giỏ luôn như cũ.
+    const sourceEl = document.getElementById('avh-product-main-image')
+    const flew = flyToCart({
+      sourceEl,
+      imageUrl: mainImage,
+      onLanded: () => openCart(),
+    })
+    if (!flew) openCart()
   }
 
   function handleWishlist() {
@@ -371,7 +381,10 @@ function ProductContent({ product }: { product: ProductDetail }) {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* ---------------- Gallery ---------------- */}
         <section>
-          <div className="relative aspect-square overflow-hidden rounded-xl border bg-muted/40">
+          <div
+            id="avh-product-main-image"
+            className="relative aspect-square overflow-hidden rounded-xl border bg-muted/40"
+          >
             <Image
               src={mainImage}
               alt={product.name}
@@ -601,7 +614,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
 
             <Button
               size="lg"
-              className="flex-1 gap-2 sm:flex-none sm:px-10"
+              className="flex-1 gap-2 transition-transform active:scale-95 sm:flex-none sm:px-10"
               onClick={() => handleAddToCart(false)}
               disabled={outOfStock}
             >
@@ -610,7 +623,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
             <Button
               size="lg"
               variant="secondary"
-              className="gap-2"
+              className="gap-2 transition-transform active:scale-95"
               onClick={() => handleAddToCart(true)}
               disabled={outOfStock}
             >

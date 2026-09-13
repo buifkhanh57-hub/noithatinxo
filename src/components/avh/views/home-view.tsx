@@ -7,6 +7,7 @@ import { useUIStore } from '@/lib/stores/ui-store'
 import { useMounted } from '@/hooks/use-mounted'
 import { useRecentStore } from '@/lib/stores/recent-store'
 import { flashSaleEnd } from '@/lib/flash-sale'
+import { orderCategories } from '@/lib/category-order'
 import { HeroCarousel } from '@/components/avh/hero-carousel'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
 import { CountdownTimer } from '@/components/avh/countdown-timer'
@@ -54,6 +55,9 @@ export function HomeView() {
     queryKey: ['blog'],
     queryFn: () => api.get('/api/blog'),
   })
+  // Thứ tự CHUẨN theo ảnh mẫu chủ shop (Đèn → Phòng Ăn → Phòng Khách →
+  // Phòng Ngủ → Tủ & Kệ → Văn Phòng) — cùng thứ tự với thanh MENU ngang
+  const orderedCategories = orderCategories(categories ?? [])
 
   // Fixed, day-anchored flash-sale deadline — truly counts down & expires
   // (lib/flash-sale.ts fixes the old "never ends" bug).
@@ -82,7 +86,7 @@ export function HomeView() {
         ) : (
           <nav aria-label="Danh mục sản phẩm">
             <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
-              {categories.map((c) => (
+              {orderedCategories.map((c) => (
                 <a
                   key={c.id}
                   href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
@@ -158,30 +162,14 @@ export function HomeView() {
       )}
 
       {/* SẢN PHẨM THEO TỪNG DANH MỤC — yêu cầu chủ shop: khách vào trang chủ
-          phải thấy hàng xếp theo danh mục để biết đường mua; "Hàng mới về"
-          xếp xuống dưới các section này (từ dưới lên). Mục rỗng tự ẩn. */}
-      {categories?.map((c) => <CategoryProducts key={c.id} category={c} />)}
+          phải thấy hàng xếp THEO THỨ TỰ DANH SÁCH DANH MỤC (Đèn → Phòng Ăn →
+          Phòng Khách → Phòng Ngủ → Tủ & Kệ → Văn Phòng, giống thanh MENU và
+          ảnh mẫu anhkhoa); "Hàng mới về" xếp NGAY SAU các mục này. Mục rỗng
+          tự ẩn. */}
+      {orderedCategories.map((c) => <CategoryProducts key={c.id} category={c} />)}
 
-      {/* Featured */}
-      <section className="mt-8">
-        <SectionHeader
-          title="Sản phẩm nổi bật"
-          subtitle="Được khách hàng yêu thích nhất"
-          icon={Sparkles}
-          action={() => setView('shop')}
-        />
-        {!mounted || !featured ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-lg" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {featured.items.map((p) => <ProductCard key={p.id} product={p} />)}
-          </div>
-        )}
-      </section>
-
-      {/* New arrivals */}
+      {/* New arrivals — NGAY sau các section danh mục (đúng yêu cầu chủ shop:
+          hết sản phẩm theo danh mục rồi mới đến "hàng mới về" phía dưới) */}
       <section className="mt-8">
         <SectionHeader
           title="Hàng mới về"
@@ -196,6 +184,26 @@ export function HomeView() {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {newProducts.items.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        )}
+      </section>
+
+      {/* Featured — xếp SAU "Hàng mới về" (chủ shop: danh mục xong → hàng mới
+          về → phần còn lại) */}
+      <section className="mt-8">
+        <SectionHeader
+          title="Sản phẩm nổi bật"
+          subtitle="Được khách hàng yêu thích nhất"
+          icon={Sparkles}
+          action={() => setView('shop')}
+        />
+        {!mounted || !featured ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-lg" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {featured.items.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         )}
       </section>
