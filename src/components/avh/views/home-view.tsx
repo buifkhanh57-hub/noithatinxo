@@ -66,25 +66,22 @@ export function HomeView() {
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
-      {/* Hero */}
-      <HeroCarousel banners={banners ?? []} />
-
-      {/* Ô DANH MỤC VUÔNG kiểu anhkhoa — chủ shop bắt THÊM VÀO ĐẦU trang chủ:
-          ô HÌNH VUÔNG, ĐÚNG 3 ô/hàng rồi dồn xuống, chữ ĐẬM + NHỎ căn giữa ô
-          (đúng ảnh anhkhoa gửi). ĐỨNG TRÊN cùng, KHÔNG đụng vào phần ảnh gốc. */}
-      <section className="mt-8">
+      {/* Ô DANH MỤC NHỎ kiểu anhkhoa — ĐẦU TRANG, TRÊN CÙNG banner hero:
+          ô NHỎ tỉ lệ ngang ~2:1 ĐÚNG như ảnh khoa, 4 ô/hàng dồn xuống, chữ
+          ĐẬM + NHỎ (11-12px) căn giữa, bo góc nhẹ viền mảnh — nhỏ gọn đẹp. */}
+      <section>
         {!mounted || !categories ? (
-          <div className="mx-auto grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
+          <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
           </div>
         ) : (
           <nav aria-label="Danh mục nhanh">
-            <div className="mx-auto grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
+            <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
               {orderedCategories.map((c) => (
                 <a
                   key={c.id}
                   href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
-                  className="flex aspect-square items-center justify-center rounded-xl border border-border bg-card p-2 text-center text-xs font-bold leading-snug text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md sm:text-sm"
+                  className="flex min-h-14 items-center justify-center rounded-lg border border-border bg-card px-1.5 py-2 text-center text-[11px] font-bold leading-tight text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md sm:text-xs"
                   title={c.name}
                 >
                   {c.name}
@@ -94,6 +91,9 @@ export function HomeView() {
           </nav>
         )}
       </section>
+
+      {/* Hero */}
+      <HeroCarousel banners={banners ?? []} />
 
       {/* MENU — chủ shop dặn: tên chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật".
           GIỮ NGUYÊN LƯỚI ẢNH DANH MỤC GỐC ("vẫn đủ nguyên ảnh"): ô vuông có
