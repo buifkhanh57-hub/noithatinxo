@@ -863,3 +863,21 @@ Stage Summary:
 - Web chỉ còn DUY NHẤT 1 menu: nút ☰ MENU trên header → xổ lưới ô danh mục 4 cột (desktop) kiểu anhkhoa, ô đang xem nền đỏ.
 - Thứ tự danh mục chuẩn (category-order.ts) vẫn giữ cho lưới MENU + section trang chủ + sidebar lọc.
 - Commit affd847 push → Vercel SUCCESS, verified live.
+
+---
+Task ID: 27
+Agent: Z.ai Code (main)
+Task: Chủ shop giải thích lại (giọng nóng): "Ấn MENU vẫn như cũ chứ, đâu liên quan gì đến ảnh khoa. Cái tao bảo là làm DANH MỤC Ô xếp từng hàng để khách xem ấy chứ, liên quan đéo gì đến MENU. Mà hình mày làm quá to, không nhỏ và đẹp như ảnh khoa. KHÔNG CẦN BẤM GÌ, danh mục đó nó hiện sẵn rồi."
+
+Work Log:
+- Hiểu đúng yêu cầu: (1) nút ☰ MENU header GIỮ NGUYÊN như cũ — không dính ảnh khoa; (2) khung danh mục ở TRANG CHỦ (trước là 6 tấm ảnh to) phải thành các Ô DANH MỤC NHỎ xếp từng hàng như ảnh khoa, HIỆN SẴN không cần bấm.
+- home-view.tsx: thay lưới 6 ảnh danh mục (aspect-square 3/6 cột) bằng lưới Ô CHỮ nhỏ bo viền: grid-cols-3 mobile / sm:grid-cols-4 desktop, cell = "rounded-lg border bg-card px-2 py-3 text-center text-xs font-semibold sm:text-sm", hover nổi nhẹ (-translate-y-0.5 + viền/nét đỏ + shadow); vẫn thứ tự chuẩn category-order; skeleton đổi thành hàng ô h-11. Giữ nguyên ô đỏ tiêu đề "MENU" + subtitle.
+- header.tsx: HOÀN TÁC lưới dropdown về nguyên trạng task 24 (grid-cols-3/6, px-2 py-3, font-semibold, hover:border-primary/60) — đúng chữ "ấn MENU vẫn như cũ, như trước ấy".
+- Verify: lint + tsc sạch; agent-browser dev (desktop 1366: 4 ô/hàng hiện sẵn; dropdown 6 cột như cũ; mobile 390: 3 ô/hàng gọn) → commit d6acf03 push → Vercel Production SUCCESS.
+- Verify PRODUCTION noithatavh.info.vn bằng agent-browser (ground truth): nav "Danh mục sản phẩm" — cols=4, cells đúng thứ tự [Đèn Trang Trí, Phòng Ăn, Phòng Khách, Phòng Ngủ, Tủ & Kệ, Văn Phòng], hasPhotoTile=false, smallCell=true (cell có py-3 + hover:-translate-y-0.5); ☰ MENU dropdown trên production = 6 cột (nguyên trạng cũ). Screenshot lưu /home/z/avh-shot-prod-final.png.
+- Ghi chú kỹ thuật: chunk-grep trên production không tìm được chuỗi mới (Turbopack tách chunk + text nằm trong flight payload) → chuyển hẳn sang verify DOM trực tiếp bằng agent-browser trên domain live.
+
+Stage Summary:
+- Trang chủ: dưới ô đỏ "MENU" là lưới ô danh mục NHỎ xếp từng hàng (4/hàng desktop, 3/hàng mobile), hiện sẵn cho khách bấm vào ngay — đúng ảnh khoa.
+- Nút ☰ MENU header + dropdown lưới 6 cột: NGUYÊN TRẠNG như cũ, không bị đụng vào nữa.
+- Commit d6acf03 push → Vercel SUCCESS → verified live trên noithatavh.info.vn.
