@@ -66,30 +66,59 @@ export function HomeView() {
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
-      {/* Ô DANH MỤC NHỎ kiểu anhkhoa — ĐẦU TRANG, TRÊN CÙNG banner hero:
-          ô NHỎ tỉ lệ ngang ~2:1 ĐÚNG như ảnh khoa, chữ ĐẬM + NHỎ (11-12px)
-          căn giữa, bo góc nhẹ viền mảnh — nhỏ gọn đẹp.
-          MOBILE: 4 ô/hàng (giữ nguyên như chủ shop khen đẹp).
-          DESKTOP (sm+): 6 ô/hàng — 6 danh mục vừa đúng 1 hàng ĐỀU, khối nới
-          max-w-4xl để hết khoảng thừa hai bên, hết hàng lẻ 2 ô. */}
+      {/* DANH MỤC MENU NỔI BẬT — ĐÚNG ẢNH chủ shop gửi (task 30, "giữ nguyên
+          như ảnh"): các ô DANH MỤC dạng pill bo viền, nền trắng, chữ ĐẬM + NHỎ,
+          RỘNG THEO TÊN (không chia đều cột), hàng dưới là ô ghi chú
+          "Chỉnh được ở phần cài đặt" (xuống hàng 2 như ảnh — nội dung chỉnh được
+          ở tab Danh mục trong Quản trị).
+          MOBILE: GIỮ NGUYÊN lưới 4 ô/hàng như cũ (chủ shop đã khen đẹp — task 29).
+          DESKTOP (sm+): hàng pill ngang, tự wrap, đúng như ảnh mẫu. */}
       <section>
         {!mounted || !categories ? (
-          <div className="mx-auto grid max-w-md grid-cols-4 gap-2 sm:max-w-4xl sm:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
-          </div>
+          <>
+            {/* mobile skeleton — lưới 4 ô như cũ */}
+            <div className="grid max-w-md grid-cols-4 gap-2 sm:hidden">
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
+            </div>
+            {/* desktop skeleton — hàng pill đúng ảnh */}
+            <div className="mx-auto hidden max-w-4xl flex-wrap items-center gap-5 sm:flex">
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-32 rounded-lg" />)}
+              <span aria-hidden className="hidden h-0 w-full sm:block" />
+              <Skeleton className="h-12 w-40 rounded-lg" />
+            </div>
+          </>
         ) : (
           <nav aria-label="Danh mục nhanh">
-            <div className="mx-auto grid max-w-md grid-cols-4 gap-2 sm:max-w-4xl sm:grid-cols-6">
+            {/* MOBILE — lưới 4 ô/hàng NGUYÊN TRẠNG (được khen đẹp, không đụng vào) */}
+            <div className="grid max-w-md grid-cols-4 gap-2 sm:hidden">
               {orderedCategories.map((c) => (
                 <a
                   key={c.id}
                   href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
-                  className="flex min-h-14 items-center justify-center rounded-lg border border-border bg-card px-1.5 py-2 text-center text-[11px] font-bold leading-tight text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md sm:text-xs"
+                  className="flex min-h-14 items-center justify-center rounded-lg border border-border bg-card px-1.5 py-2 text-center text-[11px] font-bold leading-tight text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md"
                   title={c.name}
                 >
                   {c.name}
                 </a>
               ))}
+            </div>
+            {/* DESKTOP — hàng PILL đúng ảnh: nền trắng, viền mảnh, bo góc,
+                chữ đậm nhỏ, rộng theo tên, ô ghi chú xuống hàng 2 */}
+            <div className="mx-auto hidden max-w-4xl flex-wrap items-center justify-start gap-5 sm:flex">
+              {orderedCategories.map((c) => (
+                <a
+                  key={c.id}
+                  href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
+                  className="flex min-h-12 items-center justify-center whitespace-nowrap rounded-lg border border-border bg-card px-6 text-[12px] font-bold text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md"
+                  title={c.name}
+                >
+                  {c.name}
+                </a>
+              ))}
+              <span aria-hidden className="hidden h-0 w-full sm:block" />
+              <span className="flex min-h-12 max-w-[170px] items-center justify-center rounded-lg border border-border bg-card px-4 py-2 text-center text-[12px] font-bold leading-tight text-foreground">
+                Chỉnh được ở phần cài đặt
+              </span>
             </div>
           </nav>
         )}
