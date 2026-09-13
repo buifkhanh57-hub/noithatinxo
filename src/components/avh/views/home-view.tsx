@@ -70,9 +70,9 @@ export function HomeView() {
       <HeroCarousel banners={banners ?? []} />
 
       {/* MENU — chủ shop dặn: tiêu đề chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật".
-          Lưới danh mục ĐÚNG ẢNH MẪU anhkhoa (ảnh lần 2): các Ô DANH MỤC NHỎ
-          xếp TỪNG HÀNG (4 ô/hàng desktop, 3 ô/hàng mobile), HIỆN SẴN ngay trên
-          trang chủ — khách KHÔNG cần bấm gì cứ nhìn là bấm vào mua.
+          Lưới danh mục ĐÚNG ẢNH MẪU anhkhoa: Ô HÌNH VUÔNG xếp ĐÚNG 3 Ô/MỌI HÀNG
+          (3 ô rồi dồn xuống hàng dưới), chữ ĐẬM và NHỎ căn giữa ô, HIỆN SẴN ngay
+          trên trang chủ — khách KHÔNG cần bấm gì cứ nhìn là bấm vào mua.
           (Khác hẳn nút ☰ MENU trên header — cái đó giữ nguyên như cũ.) */}
       <section className="mt-8">
         <div className="mb-3">
@@ -82,17 +82,17 @@ export function HomeView() {
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Duyệt theo không gian sống</p>
         </div>
         {!mounted || !categories ? (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-11 rounded-lg" />)}
+          <div className="mx-auto grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
           </div>
         ) : (
           <nav aria-label="Danh mục sản phẩm">
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <div className="mx-auto grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
               {orderedCategories.map((c) => (
                 <a
                   key={c.id}
                   href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
-                  className="rounded-lg border border-border bg-card px-2 py-3 text-center text-xs font-semibold text-foreground/90 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-sm sm:text-sm"
+                  className="flex aspect-square items-center justify-center rounded-xl border border-border bg-card p-2 text-center text-xs font-bold leading-snug text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md sm:text-sm"
                   title={c.name}
                 >
                   {c.name}

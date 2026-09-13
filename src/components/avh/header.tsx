@@ -480,33 +480,9 @@ export function Header() {
         )}
       </header>
 
-      {/* MENU BAR — thanh menu danh mục NGUYÊN TRẠNG CŨ của chủ shop (ảnh họ
-          gửi: ☰ MENU đỏ + Tất cả sản phẩm + từng danh mục nằm ngang dưới
-          header). KHÔNG thây thế bằng lưới kiểu khoa — chủ shop đã phản đối.
-          Mobile: cuộn ngang, ẩn scrollbar cho gọn. */}
-      <nav aria-label="MENU danh mục sản phẩm" className="border-b border-border/70 bg-card">
-        <div className="mx-auto flex max-w-7xl items-stretch overflow-x-auto px-2 [scrollbar-width:none] sm:px-4 [&::-webkit-scrollbar]:hidden">
-          <span className="mr-1 flex shrink-0 items-center gap-1.5 border-r border-border/70 pr-2.5 text-xs font-extrabold uppercase tracking-wide text-primary sm:text-sm">
-            <Menu className="h-4 w-4" strokeWidth={2.5} />
-            Menu
-          </span>
-          <button
-            onClick={() => go('shop')}
-            className="shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/85 transition hover:text-primary sm:text-sm"
-          >
-            Tất cả sản phẩm
-          </button>
-          {categories?.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => go('shop', { cat: c.slug })}
-              className="shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/85 transition hover:text-primary sm:text-sm"
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
-      </nav>
+      {/* (KHÔNG có thanh menu ngang dưới header — chủ shop bắt xóa vì site
+          bị thành 2 menu. MENU DUY NHẤT: nút ☰ MENU phía trên xổ drawer trái
+          như nguyên trạng ban đầu.) */}
 
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </>
