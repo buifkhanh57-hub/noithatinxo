@@ -24,14 +24,15 @@ export interface ActiveFlashSale {
 }
 
 /**
- * The single flash-sale program that is running RIGHT NOW:
- * active=true AND startAt<=now<=endAt (soonest-ending one wins if several).
- * Returns null when there is NO running program — callers must treat that
- * as "flash sale đã kết thúc" and hide all flash UI.
+ * The flash-sale program to display RIGHT NOW. ĐƠN GIẢN CHO CHỦ SHOP:
+ * chỉ cần `active` và CHƯA QUÁ `endAt` là tính ĐANG CHẠY — kể cả khi
+ * `startAt` còn ở tương lai (tránh cảnh "vừa tạo xong mà trang chủ
+ * không hiện gì"). Chương trình sớm kết thúc nhất được ưu tiên.
+ * Returns null khi KHÔNG còn chương trình nào hợp lệ — callers ẩn UI.
  */
 export async function getActiveFlashSale(now: Date = new Date()): Promise<ActiveFlashSale | null> {
   const fs = await db.flashSale.findFirst({
-    where: { active: true, startAt: { lte: now }, endAt: { gte: now } },
+    where: { active: true, endAt: { gte: now } },
     orderBy: { endAt: 'asc' },
     select: { id: true, name: true, startAt: true, endAt: true },
   })

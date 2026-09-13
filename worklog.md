@@ -1019,3 +1019,22 @@ Stage Summary:
 - Muốn sale mới: Quản trị → Flash Sale → Tạo (đặt start/end) — sản phẩm gắn cờ Flash ở tab Sản phẩm
 - Lưu ý production: DB Vercel chưa có chương trình nào → sau deploy flash sale sẽ ẨN cho đến khi chủ shop tạo chương trình trong Quản trị
 - e2e verified: active (banner + 01 NGÀY 22 GIỜ + progress 4%) / expired (ẩn + notice + API rỗng + badge tắt); desktop + mobile OK; lint sạch
+
+---
+Task ID: 38
+Agent: Z.ai Code (main)
+Task: (a) Fix "tạo Flash Sale xong không thấy trên web"; (b) hero dính sát hàng pill / mục Đèn Trang Trí ở đầu trang
+
+Work Log:
+- Chẩn đoán (a): chủ shop tạo chương trình trên PRODUCTION (DB sandbox không có row mới). 3 rủi ro khiến banner ẩn: startAt đặt tương lai; endAt đã qua (nhập giờ quá khứ); quên bật cờ Flash cho sản phẩm → items rỗng
+- lib/flash-sale.ts: nới lỏng getActiveFlashSale — CHỈ cần active=true & endAt>=now (bỏ điều kiện startAt<=now). Tạo xong là thấy ngay, kể cả startAt tương lai
+- API /api/products: fallback — chương trình chạy mà 0 sản phẩm gắn cờ → tự lấy sản phẩm discountPct>0 (sort giảm giá nhiều nhất) thay vì trả rỗng
+- Admin FlashSaleTab: validate endAt phải SAU hiện tại + endAt>startAt (toast lỗi tiếng Việt rõ ràng); thêm nút đặt nhanh "Hôm nay → 23:59 / +1 ngày / +3 ngày / +7 ngày" (toLocalInput theo giờ máy); chống tạo nhầm chương trình chết yểu
+- Chẩn đoán (b): đo pixel thật — pill→hero = 0px (dính sát!), hero→MENU = 32px
+- home-view: hero bọc div mt-5 sm:mt-6; section MENU mt-8 → mt-10 sm:mt-12
+- e2e: tắt hết cờ Flash → API trả 6 sp giảm giá + flashActive true; startAt +8h tương lai → vẫn hiện; khôi phục DB; đo lại gap 24px/48px; banner render OK desktop; lint sạch
+
+Stage Summary:
+- "Tạo flash sale xong là THẤY ngay": đủ 3 lớp chống ẩn (bỏ điều kiện start, fallback sp giảm giá, chặn giờ quá khứ lúc tạo)
+- Khoảng cách đầu trang thoáng: pill →hero 24px, hero→MENU 48px
+- Sau deploy chủ shop chỉ cần tạo chương trình mới trong Quản trị → Flash Sale (dùng nút +1/+3/+7 ngày cho lẹ) — banner tự hiện, không cần bật cờ Flash nếu sản phẩm đã có giá giảm

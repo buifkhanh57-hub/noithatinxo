@@ -48,8 +48,15 @@ export async function GET(req: NextRequest) {
   // (In production, precompute a normalised name column.)
   const where: Record<string, unknown> = { published: true }
   if (featured) where['isFeatured'] = true
-  if (flashSale) where['isFlashSale'] = true
   if (isNew) where['isNew'] = true
+  // Flash sale ĐANG CHẠY + CHƯA gắn sản phẩm nào (chủ shop quên bật cờ Flash
+  // ở tab Sản phẩm) ⇒ FALLBACK: lấy các sản phẩm đang thực sự giảm giá
+  // (discountPct > 0) — đảm bảo "tạo chương trình xong là thấy banner".
+  if (flashSale && activeFs) {
+    const flaggedCount = await db.product.count({ where: { isFlashSale: true, published: true } })
+    if (flaggedCount > 0) where['isFlashSale'] = true
+    else where['discountPct'] = { gt: 0 }
+  }
 
   if (category) {
     const cat = await db.category.findUnique({ where: { slug: category } })

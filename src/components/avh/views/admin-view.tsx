@@ -2464,6 +2464,12 @@ interface FlashSaleRow {
   createdAt: string
 }
 
+/** Date → value hợp lệ cho <input type="datetime-local"> theo giờ máy khách. */
+function toLocalInput(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
 function FlashSaleTab() {
   const qc = useQueryClient()
   const { data: sales, isLoading } = useQuery<FlashSaleRow[]>({
@@ -2476,10 +2482,38 @@ function FlashSaleTab() {
   const [endAt, setEndAt] = useState('')
   const [saving, setSaving] = useState(false)
 
+  // Đặt nhanh khoảng thời gian — chống lỗi chủ shop nhập giờ quá khứ
+  // (chương trình hết hạn ngay khi vừa tạo ⇒ storefront không hiện gì)
+  function presetHours(hours: number) {
+    const s = new Date()
+    const e = new Date(Date.now() + hours * 3600_000)
+    setStartAt(toLocalInput(s))
+    setEndAt(toLocalInput(e))
+  }
+  function presetEndOfToday() {
+    const e = new Date(); e.setHours(23, 59, 0, 0)
+    setStartAt(toLocalInput(new Date()))
+    setEndAt(toLocalInput(e))
+  }
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name || !startAt || !endAt) {
       toast.error('Vui lòng nhập tên + ngày bắt đầu/kết thúc')
+      return
+    }
+    const start = new Date(startAt)
+    const end = new Date(endAt)
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      toast.error('Ngày giờ không hợp lệ')
+      return
+    }
+    if (end <= new Date()) {
+      toast.error('Giờ kết thúc phải SAU thời điểm hiện tại — chương trình đã qua sẽ không hiện trên web')
+      return
+    }
+    if (end <= start) {
+      toast.error('Giờ kết thúc phải sau giờ bắt đầu')
       return
     }
     setSaving(true)
@@ -2539,7 +2573,15 @@ function FlashSaleTab() {
       </CardHeader>
       <CardContent>
         {showForm && (
-          <form onSubmit={handleCreate} className="mb-4 grid gap-3 rounded-lg border bg-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-4 rounded-lg border bg-muted/30 p-4">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">Đặt nhanh thời gian:</span>
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={presetEndOfToday}>Hôm nay → 23:59</Button>
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => presetHours(24)}>+1 ngày</Button>
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => presetHours(24 * 3)}>+3 ngày</Button>
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => presetHours(24 * 7)}>+7 ngày</Button>
+            </div>
+            <form onSubmit={handleCreate} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-1.5">
               <Label htmlFor="fs-name">Tên chương trình</Label>
               <Input id="fs-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Flash Sale cuối tuần" />
@@ -2558,7 +2600,8 @@ function FlashSaleTab() {
                 {saving ? 'Đang tạo…' : 'Tạo mới'}
               </Button>
             </div>
-          </form>
+            </form>
+          </div>
         )}
 
         {isLoading ? (

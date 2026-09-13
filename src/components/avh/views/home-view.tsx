@@ -123,13 +123,16 @@ export function HomeView() {
         )}
       </section>
 
-      {/* Hero */}
-      <HeroCarousel banners={banners ?? []} />
+      {/* Hero — cách hàng pill DANH MỤC một khoảng thỏáng (trước đây 0px
+          → ảnh hero dính sát hàng pill “Đèn Trang Trí…”, chủ shop bắt lỗi) */}
+      <div className="mt-5 sm:mt-6">
+        <HeroCarousel banners={banners ?? []} />
+      </div>
 
       {/* MENU — chủ shop dặn: tên chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật".
           GIỮ NGUYÊN LƯỚI ẢNH DANH MỤC GỐC ("vẫn đủ nguyên ảnh"): ô vuông có
           ảnh danh mục + tên bên dưới, 3 cột mobile / 6 cột desktop. */}
-      <section className="mt-8">
+      <section className="mt-10 sm:mt-12">
         <div className="mb-3">
           <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
             <span className="rounded-md bg-primary px-2 py-0.5 uppercase tracking-wide text-primary-foreground shadow-sm">MENU</span>
