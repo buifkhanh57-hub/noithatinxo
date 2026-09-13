@@ -66,13 +66,12 @@ export function HomeView() {
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
-      {/* DANH MỤC MENU NỔI BẬT — ĐÚNG ẢNH chủ shop gửi (task 30, "giữ nguyên
-          như ảnh"): các ô DANH MỤC dạng pill bo viền, nền trắng, chữ ĐẬM + NHỎ,
-          RỘNG THEO TÊN (không chia đều cột), hàng dưới là ô ghi chú
-          "Chỉnh được ở phần cài đặt" (xuống hàng 2 như ảnh — nội dung chỉnh được
-          ở tab Danh mục trong Quản trị).
+      {/* DANH MỤC MENU NỔI BẬT: các ô DANH MỤC dạng pill bo viền, nền trắng,
+          chữ ĐẬM + NHỎ, RỘNG THEO TÊN (không chia đều cột).
+          (Task 32: đã XÓA ô ghi chú "Chỉnh được ở phần cài đặt" theo yêu cầu
+          chủ shop — hàng pill chỉ còn đúng các danh mục.)
           MOBILE: GIỮ NGUYÊN lưới 4 ô/hàng như cũ (chủ shop đã khen đẹp — task 29).
-          DESKTOP (sm+): hàng pill ngang, tự wrap, đúng như ảnh mẫu. */}
+          DESKTOP (sm+): hàng pill ngang, tự wrap. */}
       <section>
         {!mounted || !categories ? (
           <>
@@ -81,10 +80,8 @@ export function HomeView() {
               {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
             </div>
             {/* desktop skeleton — hàng pill đúng ảnh */}
-            <div className="mx-auto hidden max-w-4xl flex-wrap items-center gap-5 sm:flex">
+            <div className="mx-auto hidden max-w-4xl flex-wrap items-center gap-3 sm:flex">
               {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-32 rounded-lg" />)}
-              <span aria-hidden className="hidden h-0 w-full sm:block" />
-              <Skeleton className="h-12 w-40 rounded-lg" />
             </div>
           </>
         ) : (
@@ -103,12 +100,14 @@ export function HomeView() {
               ))}
             </div>
             {/* DESKTOP — hàng PILL đúng ảnh: nền trắng, viền mảnh, bo góc,
-                chữ đậm nhỏ, rộng theo tên, ô ghi chú xuống hàng 2.
+                chữ đậm nhỏ, rộng theo tên.
                 FIX (task 31): px-6+gap-5 cần 844px/6 pill — chủ shop thêm
                 danh mục mới trong Quản trị là tràn 896px (max-w-4xl) → pill
                 cuối rơi lẻ xuống hàng 2 như ảnh lỗi. Gọn lại px-4 + gap-3
                 (612px/6 pill) ⇒ chứa được ~8 danh mục vẫn ĐỦ 1 HÀNG; danh
-                mục mới tự xếp cuối hàng, ô ghi chú luôn xuống hàng dưới. */}
+                mục mới tự xếp cuối hàng.
+                FIX (task 32): XÓA ô ghi chú "Chỉnh được ở phần cài đặt"
+                theo yêu cầu chủ shop — hàng pill chỉ còn đúng các danh mục. */}
             <div className="mx-auto hidden max-w-4xl flex-wrap items-center justify-start gap-x-3 gap-y-3 sm:flex">
               {orderedCategories.map((c) => (
                 <a
@@ -120,10 +119,6 @@ export function HomeView() {
                   {c.name}
                 </a>
               ))}
-              <span aria-hidden className="hidden h-0 w-full sm:block" />
-              <span className="flex min-h-12 max-w-[170px] items-center justify-center rounded-lg border border-border bg-card px-4 py-2 text-center text-[12px] font-bold leading-tight text-foreground">
-                Chỉnh được ở phần cài đặt
-              </span>
             </div>
           </nav>
         )}

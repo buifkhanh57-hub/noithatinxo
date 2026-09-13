@@ -934,3 +934,16 @@ Stage Summary:
 - Category pill row now scales to ~8 categories in a single row; owner can freely add categories in Admin without layout breakage.
 - Sandbox now runs the true red brand theme (stale-cache issue resolved).
 - NOT yet pushed to GitHub — awaiting owner confirmation before push (would trigger production deploy).
+---
+Task ID: 32 (sandbox session — remove note pill)
+Agent: Z.ai Code (via IM chat)
+Task: Remove the "Chỉnh được ở phần cài đặt" note pill from the homepage desktop category-pill row (owner request via IM).
+
+Work Log:
+- Pushed pending fix c717bb2 (pill row overflow) to origin/main — owner confirmed push-after-every-fix workflow (Vercel auto-deploy).
+- src/components/avh/views/home-view.tsx: removed note pill span + w-full spacer from the desktop pill row; removed matching skeleton elements; updated section comments (task 32 note). Mobile 4-col grid untouched.
+- Browser-verified: note pill gone, 7 pills (incl. owner's own live test category "egewgewg" added via Admin) fit on ONE row, hero follows cleanly. ESLint clean.
+
+Stage Summary:
+- Homepage desktop pill row now shows ONLY category pills; scales to ~8 categories single-row.
+- Workflow agreed: every completed fix is committed AND pushed to buifkhanh57-hub/noithatinxo main (Vercel deploys automatically).
