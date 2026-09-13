@@ -135,7 +135,7 @@ export function HomeView() {
           <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
             <span className="rounded-md bg-red-600 px-2 py-0.5 uppercase tracking-wide text-white shadow-sm">MENU</span>
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Duyệt theo không gian sống</p>
+          {/* chủ shop: XÓA dòng phụ đề "Duyệt theo không gian sống" (bị gạch đỏ trong ảnh) */}
         </div>
         {!mounted || !categories ? (
           <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">

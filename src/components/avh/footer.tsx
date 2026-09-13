@@ -120,22 +120,22 @@ export function Footer() {
         <div>
           <p className="mb-3 text-sm font-semibold">Về {brandName}</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><button className="hover:text-foreground" onClick={() => setView('blog')}>Cẩm nang nội thất</button></li>
-            <li><button className="hover:text-foreground">Giới thiệu</button></li>
-            <li><button className="hover:text-foreground">Hệ thống cửa hàng</button></li>
-            <li><button className="hover:text-foreground">Tuyển dụng</button></li>
-            <li><button className="hover:text-foreground" onClick={() => setView('admin')}>🔒 Khu vực quản trị</button></li>
+            <li><button className="text-left hover:text-foreground" onClick={() => setView('blog')}>Cẩm nang nội thất</button></li>
+            <li><button className="text-left hover:text-foreground">Giới thiệu</button></li>
+            <li><button className="text-left hover:text-foreground">Hệ thống cửa hàng</button></li>
+            <li><button className="text-left hover:text-foreground">Tuyển dụng</button></li>
+            <li><button className="text-left hover:text-foreground" onClick={() => setView('admin')}>🔒 Khu vực quản trị</button></li>
           </ul>
         </div>
 
         <div>
           <p className="mb-3 text-sm font-semibold">Hỗ trợ</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><button className="hover:text-foreground" onClick={() => setView('order-tracking')}>Theo dõi đơn hàng</button></li>
-            <li><button className="hover:text-foreground">Chính sách bảo hành</button></li>
-            <li><button className="hover:text-foreground">Đổi trả & hoàn tiền</button></li>
-            <li><button className="hover:text-foreground">Phương thức thanh toán</button></li>
-            <li><button className="hover:text-foreground">Câu hỏi thường gặp</button></li>
+            <li><button className="text-left hover:text-foreground" onClick={() => setView('order-tracking')}>Theo dõi đơn hàng</button></li>
+            <li><button className="text-left hover:text-foreground">Chính sách bảo hành</button></li>
+            <li><button className="text-left hover:text-foreground">Đổi trả & hoàn tiền</button></li>
+            <li><button className="text-left hover:text-foreground">Phương thức thanh toán</button></li>
+            <li><button className="text-left hover:text-foreground">Câu hỏi thường gặp</button></li>
           </ul>
         </div>
 
