@@ -299,8 +299,12 @@ function CategoryProducts({ category }: { category: Category }) {
     queryFn: () => api.get(`/api/products?category=${encodeURIComponent(category.slug)}&limit=8`),
   })
   const items = data?.items
+  // Chặn bằng `mounted` cho CẢ section (kể cả tiêu đề): SSR và lần render đầu
+  // của client phải GIỐNG NHAU — nếu TanStack Query đã có cache từ lần render
+  // đầu, client render section trong khi server không → hydration mismatch.
+  if (!mounted) return null
   // Danh mục chưa có sản phẩm → ẩn section (trang chủ không có mục rỗng)
-  if (mounted && items && items.length === 0) return null
+  if (!items || items.length === 0) return null
   return (
     <section className="mt-8">
       <SectionHeader
@@ -322,11 +326,14 @@ function CategoryProducts({ category }: { category: Category }) {
 }
 
 function BestSellers() {
+  const mounted = useMounted()
   const { data } = useQuery<{ items: ProductListItem[] }>({
     queryKey: ['products', 'best'],
     queryFn: () => api.get('/api/products?sort=best-selling&limit=5'),
   })
-  if (!data?.items?.length) return null
+  // mounted-gate: tránh hydration mismatch khi client có sẵn cache (như
+  // CategoryProducts phía trên — SSR và lần render đầu client phải giống nhau)
+  if (!mounted || !data?.items?.length) return null
   return (
     <section className="mt-8 rounded-xl border bg-card p-4 sm:p-5">
       <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
