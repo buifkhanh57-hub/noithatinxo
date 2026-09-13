@@ -299,28 +299,6 @@
   will-change: opacity, transform;
 }
 
-/* Gạch chân chạy mượt cho link danh mục trên thanh menu ngang */
-.avh-nav-link {
-  position: relative;
-}
-.avh-nav-link::after {
-  content: '';
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 4px;
-  height: 2px;
-  border-radius: 9999px;
-  background: var(--primary);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.avh-nav-link:hover::after,
-.avh-nav-link[data-active='true']::after {
-  transform: scaleX(1);
-}
-
 /* ----------------------------------------------------------------------------
  * Body scroll lock — when a Radix Dialog / Sheet / Drawer is open, Radix marks
  * <body data-scroll-locked> but does not always apply `overflow: hidden`
