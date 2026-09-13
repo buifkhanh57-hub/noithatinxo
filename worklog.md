@@ -825,3 +825,24 @@ Stage Summary:
 - Trang chủ giờ: Hero → MENU (ô đỏ) → Flash Sale → [6 section SẢN PHẨM THEO DANH MỤC] → Sản phẩm nổi bật → Hàng mới về → Bán chạy → Blog → Newsletter. Hết 2 banner thu/sleep.
 - ☰ MENU (header + thanh dưới) xổ lưới ô danh mục kiểu anhkhoa, ô đang xem nền đỏ, đăng nhập/thao tác nhanh ở hàng phụ.
 - Commit 9002915 push → Vercel SUCCESS, verified live.
+
+---
+Task ID: 25
+Agent: Z.ai Code (main)
+Task: Chủ shop nhắc lại "làm phần này giống ảnh khoa" (ảnh: thanh ☰ MENU đỏ + các danh mục Đèn Trang Trí → Văn Phòng) + "thêm animation đẹp mắt: khi mua hàng phải có 1 ánh sáng cực đẹp bay từ ảnh product đến giỏ hàng rồi MỚI hiện menu giỏ hàng đặt mua".
+
+Work Log:
+- Chẩn đoán: thanh MENU ngang đã tồn tại nhưng THỨ TỰ danh mục sai so với ảnh mẫu (API trả Phòng Khách → Đèn Trang Trí, ảnh mẫu là Đèn Trang Trí → Văn Phòng) → nguyên nhân chính chủ shop khó chịu.
+- Tạo lib/category-order.ts: thứ tự CHUẨN theo ảnh (den-trang-tri, phong-an, phong-khach, phong-ngu, tu-ke, van-phong; slug lạ tự xếp cuối) — áp dụng đồng bộ 4 nơi: header MENU bar, lưới ô MENU, section sản phẩm theo danh mục ở trang chủ, sidebar lọc danh mục ở /san-pham.
+- header.tsx: MENU bar style đúng ảnh (☰ MENU CHỮ ĐỎ đậm + vạch ngăn dọc, nền card + shadow nhẹ); thêm gạch chân chạy mượt hover/active (avh-nav-link), ô đang xem chữ đỏ; lưới MENU xổ có animation (avh-menu-drop 0.22s).
+- home-view.tsx: section sản phẩm theo TỪNG danh mục đúng thứ tự ảnh mẫu; "Hàng mới về" đưa NGAY SAU các section danh mục (đúng yêu cầu trước: hết danh mục rồi mới đến hàng mới về); "Sản phẩm nổi bật" dời xuống sau "Hàng mới về".
+- Tạo lib/fly-to-cart.ts (WAAPI, không phụ thuộc thư viện): flyer = ảnh sản phẩm bo tròn + quầng sáng vàng/đỏ (box-shadow), bay theo cung bezier 60 keyframe ~780ms (smoothstep), trail = hạt sáng nhỏ rơi sau flyer mỗi 46ms, landing = vòng sáng nở 3.4x tại nút giỏ + giỏ bounce (avh-cart-bounce), XONG mới gọi openCart(). An toàn: prefers-reduced-motion/thiếu nút giỏ → mở giỏ luôn; kẹp điểm xuất phát vào viewport (mobile bấm từ sticky bar khi ảnh đã cuộn khuất); cờ `flying` chặn spam click.
+- product-view.tsx: gắn id="avh-product-main-image" cho ảnh chính; handleAddToCart(!buyNow) → flyToCart(...) → onLanded mở giỏ; "Mua ngay" giữ nguyên vào thẳng checkout; nút Thêm vào giỏ/Mua ngay thêm hiệu ứng nhấn active:scale-95.
+- globals.css: thêm keyframes avh-cart-bounce (giỏ nhún), avh-menu-drop (lưới MENU xổ), avh-nav-link (gạch chân chạy).
+- Verify: lint + tsc sạch; agent-browser desktop 1366 — MENU bar đúng thứ tự ảnh ["Menu","Tất cả sản phẩm","Đèn Trang Trí","Phòng Ăn","Phòng Khách","Phòng Ngủ","Tủ & Kệ","Văn Phòng"]; section trang chủ theo đúng thứ tự; click "Thêm vào giỏ hàng" chụp được flyer phát sáng đang bay giữa đường, sau ~0.8s [role=dialog] "Giỏ hàng (1)" mở; mobile 390 — MENU bar cuộn ngang đúng thứ tự, fly-to-cart từ sticky bar OK, giỏ mở "Giỏ hàng (2)"; lưới MENU xổ 6 ô đúng thứ tự.
+- Clone-build a92bb87 PASS toàn bộ route → push → Vercel Production = SUCCESS (Railway vẫn fail như cũ — chờ chủ shop quyết). Verify live: chunk 510f7569c7e0f56d.js chứa marker avh-product-main-image + avh-cart-bounce có trên production (HTTP 200).
+
+Stage Summary:
+- MENU bar + lưới MENU + sidebar lọc + section trang chủ: ĐỀU dùng một thứ tự danh mục chuẩn giống ảnh mẫu anhkhoa.
+- Luồng mua hàng mới: Thêm vào giỏ → ảnh sản phẩm lấp lánh bay cong vào giỏ → giỏ nhún → menu giỏ hàng mở ra đặt mua.
+- Commit a92bb87 push → Vercel SUCCESS, verified live.
