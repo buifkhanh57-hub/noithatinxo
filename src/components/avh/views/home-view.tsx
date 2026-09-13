@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { useMounted } from '@/hooks/use-mounted'
 import { useRecentStore } from '@/lib/stores/recent-store'
-import { flashSaleEnd } from '@/lib/flash-sale'
 import { orderCategories } from '@/lib/category-order'
 import { HeroCarousel } from '@/components/avh/hero-carousel'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
@@ -43,7 +42,7 @@ export function HomeView() {
     queryKey: ['products', 'featured'],
     queryFn: () => api.get('/api/products?featured=true&limit=8'),
   })
-  const { data: flashSale } = useQuery<{ items: ProductListItem[] }>({
+  const { data: flashSale } = useQuery<{ items: ProductListItem[]; flashActive?: boolean; flashName?: string | null; flashStart?: string | null; flashEnd?: string | null }>({
     queryKey: ['products', 'flashSale'],
     queryFn: () => api.get('/api/products?flashSale=true&limit=6'),
   })
@@ -59,10 +58,10 @@ export function HomeView() {
   // Phòng Ngủ → Tủ & Kệ → Văn Phòng) — cùng thứ tự với thanh MENU ngang
   const orderedCategories = orderCategories(categories ?? [])
 
-  // Fixed, day-anchored flash-sale deadline — truly counts down & expires
-  // (lib/flash-sale.ts fixes the old "never ends" bug).
+  // Flash sale ĐÓNG HỮU: chỉ hiện khi API xác nhận có chương trình ĐANG CHẠY
+  // (Quản trị → Flash Sale đặt startAt/endAt thật). Hết giờ → onExpired ẩn
+  // ngay; KHÔNG tự quay về 24h nữa (lib/flash-sale v3 đọc DB, không chu kỳ).
   const [flashExpired, setFlashExpired] = useState(false)
-  const flashEnd = flashSaleEnd()
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
@@ -172,27 +171,43 @@ export function HomeView() {
         )}
       </section>
 
-      {/* Flash Sale — red ticket banner, tự ẩn khi hết giờ (flash truly expires) */}
-      {mounted && flashSale && flashSale.items.length > 0 && !flashExpired && (
-        <section className="mt-8 overflow-hidden rounded-xl shadow-md">
-          {/* Ticket header — red gradient with punched-hole decorations */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-red-900 via-red-800 to-red-700">
-            {/* translucent white circles — ticket decoration */}
-            <span aria-hidden className="absolute -left-4 -top-8 h-20 w-20 rounded-full bg-white/15" />
-            <span aria-hidden className="absolute -bottom-10 left-1/3 h-24 w-24 rounded-full bg-white/10" />
-            <span aria-hidden className="absolute -right-6 -top-10 h-28 w-28 rounded-full bg-white/10" />
-            <div className="relative flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <div className="flex items-center gap-2">
-                <Flame className="h-6 w-6 text-amber-300" aria-hidden />
-                <h2 className="text-lg font-extrabold tracking-tight text-white sm:text-xl">
-                  FLASH SALE HÔM NAY
-                </h2>
-                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-primary shadow">-35%</span>
+      {/* Flash Sale — banner vè đổi mới, chỉ hiện khi có chương trình ĐANG
+          chạy trong DB (Quản trị → Flash Sale). Hết giờ ⇒ tự ẩn, không lặp. */}
+      {mounted && flashSale?.flashActive && flashSale.flashStart && flashSale.flashEnd && flashSale.items.length > 0 && !flashExpired && (
+        <section className="relative mt-8 overflow-hidden rounded-2xl shadow-lg ring-1 ring-red-900/20">
+          <div className="relative bg-gradient-to-br from-red-950 via-red-900 to-red-800">
+            {/* decorations — vệt sáng chéo + quầng sáng ấm + lửa mờ lớn */}
+            <span aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-amber-400/10 blur-3xl" />
+            <span aria-hidden className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+            <span aria-hidden className="pointer-events-none absolute -right-2 -top-16 h-52 w-52 rotate-12 bg-gradient-to-b from-white/10 to-transparent blur-2xl [clip-path:polygon(45%_0,55%_0,20%_100%,10%_100%)]" />
+            <Flame aria-hidden className="pointer-events-none absolute -bottom-6 right-4 h-32 w-32 text-white/5 sm:right-10 sm:h-44 sm:w-44" />
+            <div className="relative flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-400/20 ring-1 ring-amber-300/40">
+                  <Flame className="h-6 w-6 animate-pulse text-amber-300" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-xl font-black uppercase tracking-wide text-white drop-shadow-sm sm:text-2xl">
+                    Flash Sale
+                  </h2>
+                  <p className="truncate text-[11px] font-semibold uppercase tracking-widest text-white/75 sm:text-xs">
+                    {flashSale.flashName || 'Ưu đãi giới hạn — số lượng có hạn'}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 self-start sm:self-auto">
                 <span className="text-xs font-semibold text-white/90">Kết thúc sau:</span>
-                <CountdownTimer target={flashEnd} variant="dark" size="sm" onExpired={() => setFlashExpired(true)} />
+                <CountdownTimer
+                  target={flashSale.flashEnd}
+                  variant="dark"
+                  labels
+                  onExpired={() => setFlashExpired(true)}
+                />
               </div>
+            </div>
+            {/* progress — % thời gian đã chạy của chương trình */}
+            <div className="relative px-4 pb-3 sm:px-6 sm:pb-4">
+              <FlashProgress start={flashSale.flashStart} end={flashSale.flashEnd} />
             </div>
             {/* serrated tear-off edge */}
             <svg aria-hidden className="block h-2 w-full" preserveAspectRatio="none" viewBox="0 0 100 4">
@@ -457,5 +472,35 @@ function RecentlyViewed() {
         ))}
       </div>
     </section>
+  )
+}
+/**
+ * Progress bar của chương trình flash sale: % thời gian đã trôi qua
+ * giữa startAt → endAt. Render null ở lần render đầu (SSR-safe) để tránh
+ * lệch hydration, rồi cập nhật mỗi 30s.
+ */
+function FlashProgress({ start, end }: { start: string; end: string }) {
+  const [pct, setPct] = useState<number | null>(null)
+  useEffect(() => {
+    const s = new Date(start).getTime()
+    const e = new Date(end).getTime()
+    const tick = () => setPct(Math.min(100, Math.max(0, ((Date.now() - s) / Math.max(1, e - s)) * 100)))
+    tick()
+    const id = setInterval(tick, 30_000)
+    return () => clearInterval(id)
+  }, [start, end])
+  if (pct === null) return null
+  return (
+    <div className="flex items-center gap-2" aria-hidden>
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/15">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-amber-300 to-amber-400 transition-[width] duration-700"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="text-[10px] font-bold tabular-nums text-white/75">
+        {pct >= 100 ? 'Sắp kết thúc!' : `Đã qua ${Math.round(pct)}%`}
+      </span>
+    </div>
   )
 }

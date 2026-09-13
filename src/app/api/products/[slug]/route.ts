@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { parseJSON } from '@/lib/format'
+import { getActiveFlashSale } from '@/lib/flash-sale'
 
 /**
  * GET /api/products/[slug] — full product detail with media, variants, reviews, Q&A, related.
@@ -65,7 +66,7 @@ export async function GET(
     soldCount: product.soldCount,
     isFeatured: product.isFeatured,
     isNew: product.isNew,
-    isFlashSale: product.isFlashSale,
+    isFlashSale: (await getActiveFlashSale()) ? product.isFlashSale : false,
     category: { id: product.category.id, slug: product.category.slug, name: product.category.name },
     specs: parseJSON<Record<string, string>>(product.specs, {}),
     tags: parseJSON<string[]>(product.tags, []),

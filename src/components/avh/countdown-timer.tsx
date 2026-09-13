@@ -7,11 +7,14 @@ export function CountdownTimer({
   target,
   variant = 'dark',
   size = 'md',
+  labels = false,
   onExpired,
 }: {
   target: Date | string
   variant?: 'dark' | 'light' | 'inline'
   size?: 'sm' | 'md' | 'lg'
+  /** Show Ngày/Giờ/Phút/Giây captions under each box (decorated banner). */
+  labels?: boolean
   /** Called once when the countdown reaches zero (flash sale truly ends). */
   onExpired?: () => void
 }) {
@@ -45,12 +48,31 @@ export function CountdownTimer({
   }
 
   const sizeCls = size === 'sm' ? 'h-7 w-7 text-xs' : size === 'lg' ? 'h-12 w-12 text-xl' : 'h-9 w-9 text-sm'
+  const labelCls = variant === 'dark' ? 'text-white/85' : 'text-muted-foreground'
   // 'dark'  = white boxes + red digits → sits on the red flash-sale banner
   // 'light' = red boxes + white digits → sits on white surfaces
   const bgCls =
     variant === 'dark'
       ? 'bg-white text-primary shadow-sm'
       : 'bg-primary text-primary-foreground'
+
+  if (labels) {
+    return (
+      <div className="flex items-start gap-1.5" role="timer" aria-label="Thời gian còn lại">
+        {boxes.map((b, i) => (
+          <div key={b.label} className="flex items-start gap-1.5">
+            <div className="flex flex-col items-center gap-0.5">
+              <div className={`flex ${sizeCls} items-center justify-center rounded-md ${bgCls} font-mono font-bold tabular-nums`}>
+                {pad(b.v)}
+              </div>
+              <span className={`text-[9px] font-bold uppercase tracking-wider ${labelCls}`}>{b.label}</span>
+            </div>
+            {i < boxes.length - 1 && <span className="pt-1 text-sm font-bold leading-none opacity-70">:</span>}
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center gap-1" role="timer" aria-label="Thời gian còn lại">

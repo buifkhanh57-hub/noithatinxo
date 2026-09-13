@@ -999,3 +999,23 @@ Work Log:
 Stage Summary:
 - Đỏ thương hiệu giờ là lab(32.4%) — đậm thêm 1 nấc nhỏ đúng mức "1 ti ti ti", không tươi trở lại
 - Commit + push origin/main ngay (Vercel tự deploy)
+
+---
+Task ID: 37
+Agent: Z.ai Code (main)
+Task: Fix Flash Sale "hết giờ tự quay về 24h + hết hạn vẫn hiện" + trang trí lại banner flash sale
+
+Work Log:
+- Nguyên nhân: lib/flash-sale v2 dùng chu kỳ 24h neo theo ngày UTC (window tự lặp mãi) → đếm ngược hết ngày lại về 24h, block không bao giờ ẩn thật; API chỉ lọc cờ isFlashSale tĩnh trên Product, bỏ qua bảng FlashSale mà Admin đã có UI quản lý (Quản trị → Flash Sale: startAt/endAt/active)
+- lib/flash-sale.ts v3: getActiveFlashSale() đọc DB (active=true, startAt<=now<=endAt, endAt gần nhất) + toFlashSaleState(); bỏ hoàn toàn chu kỳ tự lặp
+- API /api/products: không có chương trình chạy → ?flashSale=true trả items rỗng + flashActive:false; ĐỒNG THỜI stamp isFlashSale=false trên MỌI list (featured/new/category) khi hết hạn → badge "Flash Sale" biến mất toàn site. /api/products/[slug] stamp tương tự
+- CountdownTimer: thêm prop labels (Ngày/Giờ/Phút/Giây dưới ô số)
+- home-view: banner mới chỉ render khi API xác nhận flashActive (endAt thật); đếm tới endAt; onExpired → ẩn ngay. Trang trí: gradient from-red-950 via-red-900 to-red-800 (đậm hợp brand), flame amber pulse, tiêu đề FLASH SALE + tên chương trình từ DB, progress bar % thời gian đã chạy (FlashProgress, SSR-safe), viền răng cưa giữ nguyên
+- shop-view: banner chỉ hiện khi flashRunning (data.flashActive); hết hạn → thông báo "Chương trình flash sale đã kết thúc"; onExpired → refetch
+- DB dev: "Flash Sale Cuối Tuần" (đã có sẵn) đang chạy, endAt +46h — test được cả 2 trạng thái (UPDATE endAt quá khứ → ẩn; khôi phục → hiện lại)
+
+Stage Summary:
+- Đếm ngược giờ CHÂN THẬT do chủ shop đặt trong Quản trị; hết hạn → banner + badge + lưới flash sale ẨN TOÀN BỘ, không tự quay lại
+- Muốn sale mới: Quản trị → Flash Sale → Tạo (đặt start/end) — sản phẩm gắn cờ Flash ở tab Sản phẩm
+- Lưu ý production: DB Vercel chưa có chương trình nào → sau deploy flash sale sẽ ẨN cho đến khi chủ shop tạo chương trình trong Quản trị
+- e2e verified: active (banner + 01 NGÀY 22 GIỜ + progress 4%) / expired (ẩn + notice + API rỗng + badge tắt); desktop + mobile OK; lint sạch

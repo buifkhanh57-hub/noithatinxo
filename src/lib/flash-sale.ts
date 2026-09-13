@@ -1,43 +1,54 @@
 /**
- * Flash Sale timing — deterministic, truly expiring windows.
+ * Flash Sale timing — DB-driven, REAL program windows.
  *
- * BEFORE: every render did `new Date(); setHours(+23,59,59)` → the deadline
- * was recomputed on every request/render, so the countdown NEVER reached zero
- * and the sale "never ended" (bug reported by the shop owner).
- *
- * NOW: the window is anchored to UTC-day boundaries via a pure function, so:
- *   - every render within the same day computes the SAME end time
- *   - the countdown genuinely counts down to 00:00:00
- *   - `remaining()` hits 0 → views hide the flash-sale block (truly expired)
- *   - when a new UTC day begins, a fresh 24h window opens automatically
- *     (classic periodic flash-sale behaviour, no manual admin toggling)
+ * HISTORY:
+ *  v1 (bug): `setHours(23,59,59)` recomputed every render → never ended.
+ *  v2 (bug): UTC-day-anchored 24h cycle → countdown "restarted from 24h"
+ *            every new day and the block NEVER truly disappeared
+ *            (chủ shop: "hết giờ nó tự quay về 24, hết hạn rồi vẫn hiện").
+ *  v3 (NOW): the window comes from the admin-managed `FlashSale` table
+ *            (Quản trị → Flash Sale: name, startAt, endAt, active).
+ *    - countdown targets the REAL `endAt` chosen by the shop owner
+ *    - when `endAt` passes (or admin toggles off) → `getActiveFlashSale()`
+ *      returns null → APIs return no flash items & the UI hides every
+ *      flash block + badge. Nothing restarts by itself.
  */
 
-/** One flash-sale window = 24h (UTC-day aligned). */
-export const FLASH_SALE_CYCLE_MS = 24 * 60 * 60 * 1000
+import { db } from '@/lib/db'
 
-export interface FlashSaleWindow {
-  start: Date
-  end: Date
-  /** ms left in the current window (0 when expired) */
-  remainingMs: number
-  /** true when now is past `end` */
-  expired: boolean
+export interface ActiveFlashSale {
+  id: string
+  name: string
+  startAt: string // ISO
+  endAt: string   // ISO
 }
 
-/** Pure: same `now` → same window. Day-quantized so SSR/client agree. */
-export function flashSaleWindow(now: number = Date.now()): FlashSaleWindow {
-  const cycleStart = Math.floor(now / FLASH_SALE_CYCLE_MS) * FLASH_SALE_CYCLE_MS
-  const cycleEnd = cycleStart + FLASH_SALE_CYCLE_MS - 1 // 23:59:59.999 UTC
-  return {
-    start: new Date(cycleStart),
-    end: new Date(cycleEnd),
-    remainingMs: Math.max(0, cycleEnd - now),
-    expired: now > cycleEnd,
-  }
+/**
+ * The single flash-sale program that is running RIGHT NOW:
+ * active=true AND startAt<=now<=endAt (soonest-ending one wins if several).
+ * Returns null when there is NO running program — callers must treat that
+ * as "flash sale đã kết thúc" and hide all flash UI.
+ */
+export async function getActiveFlashSale(now: Date = new Date()): Promise<ActiveFlashSale | null> {
+  const fs = await db.flashSale.findFirst({
+    where: { active: true, startAt: { lte: now }, endAt: { gte: now } },
+    orderBy: { endAt: 'asc' },
+    select: { id: true, name: true, startAt: true, endAt: true },
+  })
+  if (!fs) return null
+  return { id: fs.id, name: fs.name, startAt: fs.startAt.toISOString(), endAt: fs.endAt.toISOString() }
 }
 
-/** Stable per-day end Date for countdown targets. */
-export function flashSaleEnd(now: number = Date.now()): Date {
-  return flashSaleWindow(now).end
+/** Shared JSON payload for list APIs: state of the flash window. */
+export interface FlashSaleState {
+  flashActive: boolean
+  flashName: string | null
+  flashStart: string | null // ISO startAt (for progress %)
+  flashEnd: string | null   // ISO endAt for the countdown target
+}
+
+export function toFlashSaleState(fs: ActiveFlashSale | null): FlashSaleState {
+  return fs
+    ? { flashActive: true, flashName: fs.name, flashStart: fs.startAt, flashEnd: fs.endAt }
+    : { flashActive: false, flashName: null, flashStart: null, flashEnd: null }
 }

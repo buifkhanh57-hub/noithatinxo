@@ -8,7 +8,6 @@ import {
 import { toast } from 'sonner'
 
 import { api, ApiError } from '@/lib/api'
-import { flashSaleEnd } from '@/lib/flash-sale'
 import { orderCategories } from '@/lib/category-order'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { ProductCard, ProductListItem } from '@/components/avh/product-card'
@@ -51,6 +50,10 @@ interface ProductListResponse {
   page: number
   limit: number
   totalPages: number
+  /** Trạng thái cửa sổ flash sale thật (từ bảng FlashSale do admin quản) */
+  flashActive?: boolean
+  flashName?: string | null
+  flashEnd?: string | null
 }
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
@@ -151,7 +154,7 @@ export function ShopView() {
     return u.pathname + u.search
   }, [navQ, navCat, navSort, navFlash, navIsNew, minPrice, maxPrice, materials, colors, page])
 
-  const { data, isLoading, isError, error } = useQuery<ProductListResponse>({
+  const { data, isLoading, isError, error, refetch } = useQuery<ProductListResponse>({
     queryKey: ['shop', apiUrl],
     queryFn: () => api.get(apiUrl),
     enabled: typeof window !== 'undefined',
@@ -175,8 +178,11 @@ export function ShopView() {
       ? 'Hàng mới về'
       : activeCategory?.name || (navQ ? `Tìm kiếm: "${navQ}"` : 'Tất cả sản phẩm')
 
-  // Day-anchored flash deadline from lib/flash-sale — truly counts down & expires
-  const flashTarget = flashSaleEnd()
+  // Flash sale DÓNG HỮU: deadline = endAt thật của chương trình trong DB
+  // (Quản trị → Flash Sale). Hết giờ → onExpired refetch → API trả rỗng →
+  // banner + lưới tự ẩn, hiện thông báo đã kết thúc. KHÔNG còn chu kỳ 24h.
+  const flashRunning = navFlash && data?.flashActive === true && !!data.flashEnd
+  const flashEndedNotice = navFlash && !isLoading && data != null && data.flashActive !== true
 
   const hasActiveFilters =
     !!navCat || !!navQ || navFlash || navIsNew ||
@@ -275,19 +281,38 @@ export function ShopView() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Flash sale banner — red ticket, same style as homepage */}
-      {navFlash && (
+      {/* Flash sale banner — chỉ hiện khi chương trình ĐANG chạy (DB thật);
+          hết giờ → onExpired refetch → banner ẩn, hiện thông báo kết thúc */}
+      {flashRunning && (
         <div className="mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-red-900 via-red-800 to-red-700 shadow-md">
           <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Flame className="h-6 w-6 text-amber-300" />
-              <h1 className="text-lg font-extrabold text-white sm:text-2xl">FLASH SALE ĐANG DIỄN RA</h1>
+              <h1 className="text-lg font-extrabold text-white sm:text-2xl">
+                {data?.flashName || 'FLASH SALE ĐANG DIỄN RA'}
+              </h1>
               <Badge className="bg-white text-primary">Cực sốc</Badge>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-white/90">Kết thúc sau</span>
-              <CountdownTimer target={flashTarget} variant="dark" size="sm" />
+              <CountdownTimer
+                target={data!.flashEnd!}
+                variant="dark"
+                size="sm"
+                onExpired={() => { void refetch() }}
+              />
             </div>
+          </div>
+        </div>
+      )}
+      {flashEndedNotice && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-3">
+          <Flame className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Chương trình flash sale đã kết thúc</p>
+            <p className="text-xs text-muted-foreground">
+              Đón sale tiếp theo nhé — giờ này chưa có ưu đãi flash nào đang chạy.
+            </p>
           </div>
         </div>
       )}

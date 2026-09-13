@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { parseJSON, normalizeVN } from '@/lib/format'
+import { getActiveFlashSale, toFlashSaleState } from '@/lib/flash-sale'
 
 /**
  * GET /api/products
@@ -28,6 +29,18 @@ export async function GET(req: NextRequest) {
   const featured = sp.get('featured') === 'true'
   const flashSale = sp.get('flashSale') === 'true'
   const isNew = sp.get('isNew') === 'true'
+
+  // REAL flash-sale window from the admin-managed FlashSale table.
+  // No running program ⇒ flash sale has ENDED: the ?flashSale=true list is
+  // empty and every product is returned with isFlashSale=false so stale
+  // "Flash Sale" badges disappear everywhere (fix: hết hạn vẫn hiện).
+  const activeFs = await getActiveFlashSale()
+  if (flashSale && !activeFs) {
+    return NextResponse.json({
+      success: true,
+      data: { items: [], total: 0, page, limit, totalPages: 1, ...toFlashSaleState(null) },
+    })
+  }
 
   // Build where clause — SQLite has no full-text; emulate diacritic-insensitive
   // search by storing product names with diacritics and matching a normalised
@@ -129,7 +142,7 @@ export async function GET(req: NextRequest) {
     soldCount: p.soldCount,
     isFeatured: p.isFeatured,
     isNew: p.isNew,
-    isFlashSale: p.isFlashSale,
+    isFlashSale: activeFs ? p.isFlashSale : false,
     category: { id: p.category.id, slug: p.category.slug, name: p.category.name },
     image: p.media[0]?.url ?? '/products/placeholder.png',
     colors: parseJSON<string[]>(p.colors, []),
@@ -145,6 +158,7 @@ export async function GET(req: NextRequest) {
       page,
       limit,
       totalPages: Math.max(1, Math.ceil((filtered.length < rows.length ? filtered.length : total) / limit)),
+      ...toFlashSaleState(activeFs),
     },
   })
 }
