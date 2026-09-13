@@ -971,3 +971,16 @@ Work Log:
 
 Stage Summary:
 - Mobile footer now single-column stack, every section (incl. "Hỗ trợ") flush to the left edge; desktop untouched.
+---
+Task ID: 35 (sandbox session — deeper brand red)
+Agent: Z.ai Code (via IM chat)
+Task: Owner feedback — the brand red was too bright/vivid for a furniture store; make it deeper/more sophisticated.
+
+Work Log:
+- globals.css: primary/ring/chart-1/sidebar-primary/sidebar-ring oklch(0.55 0.22 26) → oklch(0.46 0.155 26) (deep mahogany/burgundy; L 0.55→0.46, C 0.22→0.155). Dark mode 0.66 0.21 → 0.60 0.155. Comments updated.
+- Theme-driven sync: discount/Flash-Sale badges + MENU badge bg-red-600 → bg-primary (product-card, product-view, home-view); flash-sale ticket gradient from-red-700/via-red-600/to-rose-500 → from-red-900/via-red-800/to-red-700 (home-view, shop-view); -35% pill + Cực sốc badge text-red-600 → text-primary; compare-view discount badge → bg-primary; countdown-timer active digit text-red-600 → text-primary; footer trust icons bg-red-50/text-red-600 → bg-primary/10/text-primary; footer social hovers red-200/red-50/red-600 → primary/30, primary/10, primary.
+- Kept SEMANTIC status reds untouched (order CANCELLED, error logs, wishlist heart, stock in/out indicators) — standard UX colors, not brand surfaces.
+- Browser-verified: --primary computes lab(35.8% + deep chroma); topbar, logo, prices, buttons, badges, ticket banner, chat widget all deep mahogany. ESLint clean.
+
+Stage Summary:
+- Brand red is now a deep, premium mahogany consistent across every brand surface; semantic status colors preserved.

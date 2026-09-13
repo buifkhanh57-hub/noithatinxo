@@ -277,12 +277,12 @@ export function ShopView() {
 
       {/* Flash sale banner — red ticket, same style as homepage */}
       {navFlash && (
-        <div className="mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-red-700 via-red-600 to-rose-500 shadow-md">
+        <div className="mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-red-900 via-red-800 to-red-700 shadow-md">
           <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Flame className="h-6 w-6 text-amber-300" />
               <h1 className="text-lg font-extrabold text-white sm:text-2xl">FLASH SALE ĐANG DIỄN RA</h1>
-              <Badge className="bg-white text-red-600">Cực sốc</Badge>
+              <Badge className="bg-white text-primary">Cực sốc</Badge>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-white/90">Kết thúc sau</span>

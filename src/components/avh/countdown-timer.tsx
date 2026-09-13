@@ -49,7 +49,7 @@ export function CountdownTimer({
   // 'light' = red boxes + white digits → sits on white surfaces
   const bgCls =
     variant === 'dark'
-      ? 'bg-white text-red-600 shadow-sm'
+      ? 'bg-white text-primary shadow-sm'
       : 'bg-primary text-primary-foreground'
 
   return (

@@ -99,7 +99,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
         {/* badges */}
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {disc > 0 && (
-            <Badge className="bg-red-600 text-white shadow">-{disc}%</Badge>
+            <Badge className="bg-primary text-primary-foreground shadow">-{disc}%</Badge>
           )}
           {product.isNew && (
             <Badge className="bg-emerald-600 text-white shadow">Mới</Badge>

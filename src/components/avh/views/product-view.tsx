@@ -396,13 +396,13 @@ function ProductContent({ product }: { product: ProductDetail }) {
             {/* badges */}
             <div className="absolute left-3 top-3 flex flex-col gap-1.5">
               {disc > 0 && (
-                <Badge className="bg-red-600 text-white shadow">-{disc}%</Badge>
+                <Badge className="bg-primary text-primary-foreground shadow">-{disc}%</Badge>
               )}
               {product.isNew && (
                 <Badge className="bg-emerald-600 text-white shadow">Mới</Badge>
               )}
               {product.isFlashSale && (
-                <Badge className="bg-red-600 text-white shadow">Flash Sale</Badge>
+                <Badge className="bg-primary text-primary-foreground shadow">Flash Sale</Badge>
               )}
               {product.isFeatured && (
                 <Badge className="bg-primary text-primary-foreground shadow">Nổi bật</Badge>
@@ -492,7 +492,7 @@ function ProductContent({ product }: { product: ProductDetail }) {
                 <span className="text-base text-muted-foreground line-through">{formatVND(product.comparePrice)}</span>
               )}
               {disc > 0 && (
-                <Badge className="bg-red-600 text-white">-{disc}%</Badge>
+                <Badge className="bg-primary text-primary-foreground">-{disc}%</Badge>
               )}
             </div>
             {outOfStock ? (

@@ -461,7 +461,7 @@ function ProductColumnHeader({
           <X className="h-3.5 w-3.5" />
         </button>
         {disc > 0 && (
-          <Badge className="absolute left-1.5 top-1.5 bg-red-600 text-white">
+          <Badge className="absolute left-1.5 top-1.5 bg-primary text-primary-foreground">
             -{disc}%
           </Badge>
         )}

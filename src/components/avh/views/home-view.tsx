@@ -133,7 +133,7 @@ export function HomeView() {
       <section className="mt-8">
         <div className="mb-3">
           <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
-            <span className="rounded-md bg-red-600 px-2 py-0.5 uppercase tracking-wide text-white shadow-sm">MENU</span>
+            <span className="rounded-md bg-primary px-2 py-0.5 uppercase tracking-wide text-primary-foreground shadow-sm">MENU</span>
           </h2>
           {/* chủ shop: XÓA dòng phụ đề "Duyệt theo không gian sống" (bị gạch đỏ trong ảnh) */}
         </div>
@@ -176,7 +176,7 @@ export function HomeView() {
       {mounted && flashSale && flashSale.items.length > 0 && !flashExpired && (
         <section className="mt-8 overflow-hidden rounded-xl shadow-md">
           {/* Ticket header — red gradient with punched-hole decorations */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-red-700 via-red-600 to-rose-500">
+          <div className="relative overflow-hidden bg-gradient-to-r from-red-900 via-red-800 to-red-700">
             {/* translucent white circles — ticket decoration */}
             <span aria-hidden className="absolute -left-4 -top-8 h-20 w-20 rounded-full bg-white/15" />
             <span aria-hidden className="absolute -bottom-10 left-1/3 h-24 w-24 rounded-full bg-white/10" />
@@ -187,7 +187,7 @@ export function HomeView() {
                 <h2 className="text-lg font-extrabold tracking-tight text-white sm:text-xl">
                   FLASH SALE HÔM NAY
                 </h2>
-                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-red-600 shadow">-35%</span>
+                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-primary shadow">-35%</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-white/90">Kết thúc sau:</span>
@@ -201,7 +201,7 @@ export function HomeView() {
               ))}
             </svg>
           </div>
-          <div className="bg-red-50/60">
+          <div className="bg-primary/5">
             <div className={cn(
               'grid grid-cols-2 gap-3 p-4 sm:grid-cols-3',
               flashSale.items.length > 4 ? 'lg:grid-cols-6' : 'lg:grid-cols-4'
@@ -210,7 +210,7 @@ export function HomeView() {
                 <ProductCard key={p.id} product={p} />
               ))}
             </div>
-            <div className="border-t border-red-200/70 p-3 text-center">
+            <div className="border-t border-primary/15 p-3 text-center">
               <Button size="sm" onClick={() => setView('shop', { flashSale: 'true' })} className="gap-1.5 font-bold">
                 Xem tất cả flash sale <ArrowRight className="h-4 w-4" />
               </Button>
