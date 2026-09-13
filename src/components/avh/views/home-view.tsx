@@ -103,13 +103,18 @@ export function HomeView() {
               ))}
             </div>
             {/* DESKTOP — hàng PILL đúng ảnh: nền trắng, viền mảnh, bo góc,
-                chữ đậm nhỏ, rộng theo tên, ô ghi chú xuống hàng 2 */}
-            <div className="mx-auto hidden max-w-4xl flex-wrap items-center justify-start gap-5 sm:flex">
+                chữ đậm nhỏ, rộng theo tên, ô ghi chú xuống hàng 2.
+                FIX (task 31): px-6+gap-5 cần 844px/6 pill — chủ shop thêm
+                danh mục mới trong Quản trị là tràn 896px (max-w-4xl) → pill
+                cuối rơi lẻ xuống hàng 2 như ảnh lỗi. Gọn lại px-4 + gap-3
+                (612px/6 pill) ⇒ chứa được ~8 danh mục vẫn ĐỦ 1 HÀNG; danh
+                mục mới tự xếp cuối hàng, ô ghi chú luôn xuống hàng dưới. */}
+            <div className="mx-auto hidden max-w-4xl flex-wrap items-center justify-start gap-x-3 gap-y-3 sm:flex">
               {orderedCategories.map((c) => (
                 <a
                   key={c.id}
                   href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
-                  className="flex min-h-12 items-center justify-center whitespace-nowrap rounded-lg border border-border bg-card px-6 text-[12px] font-bold text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md"
+                  className="flex min-h-12 items-center justify-center whitespace-nowrap rounded-lg border border-border bg-card px-4 text-[12px] font-bold text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-md"
                   title={c.name}
                 >
                   {c.name}

@@ -918,3 +918,19 @@ Stage Summary:
 - Điện thoại: KHÔNG ĐỔI GÌ (4 ô/hàng, 2 hàng 4+2 — thứ chủ shop khen đẹp).
 - Máy tính: 6 ô/1 hàng đều tăm tắp, khối max-w-4xl cân giữa — hết hàng lẻ, hết khoảng thừa.
 - Commit f9d3ebc → Vercel.
+Task ID: 31 (sandbox session — fix pill category row)
+Agent: Z.ai Code (via IM chat)
+Task: Fix homepage desktop category-pill row breaking (last pill orphan-wraps) when shop owner adds a new category in Admin → Danh mục.
+
+Work Log:
+- Cloned buifkhanh57-hub/noithatinxo (latest a60d431), set up sandbox: .env (SQLite file:./db/custom.db + NextAuth secrets), bun install, prisma db:dev push, dev server on :3000.
+- Diagnosed "site shows black instead of brand red" complaint: stale Turbopack cache from previous sandbox template served old globals.css (#171717). Cleared .next + node_modules/.cache → brand red oklch(0.55 0.22 26) renders correctly everywhere.
+- Measured desktop pill row: 6 pills with px-6 + gap-5 = 844px total vs container max-w-4xl (896px) — only 52px headroom. Adding ANY 7th category (or viewport < ~880px) forces the last pill to orphan-wrap onto its own row, then the note pill onto a 3rd row (the reported bug).
+- Fix in src/components/avh/views/home-view.tsx (desktop pill row only, mobile 4-col grid untouched): px-6 → px-4, gap-5 → gap-x-3 gap-y-3. New totals: 6 pills = 648px, 7 pills = ~768px, 8 pills ≈ 880px — still one row inside max-w-4xl.
+- Verified via agent-browser end-to-end with real admin flow: logged into /quan-tri as owner (provided credentials), added category "Phòng Bếp" → homepage pills stay on ONE row (755px), new category appends last (orderCategories), note pill stays on row 2. Narrow 700px viewport degrades cleanly (5 + 2 pills, no single orphan).
+- Deleted test category via admin UI (confirm dialog flow works); DB back to the 6 seeded categories. ESLint clean.
+
+Stage Summary:
+- Category pill row now scales to ~8 categories in a single row; owner can freely add categories in Admin without layout breakage.
+- Sandbox now runs the true red brand theme (stale-cache issue resolved).
+- NOT yet pushed to GitHub — awaiting owner confirmation before push (would trigger production deploy).
