@@ -808,3 +808,20 @@ Stage Summary:
 - Railway "vivacious-adaptation" vẫn fail — KHÔNG phục vụ web khách thấy. Khuyến nghị: nếu không dùng Railway thì xóa service/ngắt auto-deploy; muốn dùng thì cần log Railway hoặc cấp Railway token.
 - db.ts giờ an toàn build-time (lazy) — benefit cả 2 platform.
 - Commit cf9e8ef push → Vercel SUCCESS.
+
+---
+Task ID: 24
+Agent: Z.ai Code (main)
+Task: Chủ shop gửi ảnh mẫu anhkhoa.com.vn ("no la nhu nay nay???"): (1) bấm ☰ MENU phải xổ LƯỚI Ô DANH MỤC ngay dưới header; (2) bỏ 2 banner "Mang sắc thu vào tổ ấm" + "Giấc ngủ êm với AVH Sleep"; (3) "thêm các sản phẩm theo danh sách danh mục từ dưới lên, rồi mới đến hàng mới về xếp xuống — làm vậy ai biết mà mua hàng".
+
+Work Log:
+- header.tsx: THAY drawer trái (Sheet) bằng nút toggle ☰ MENU → xổ LƯỚI Ô DANH MỤC inline trong header sticky (mở lúc cuộn cũng thấy): 6 ô viền bo tròn tên danh mục (3 cột mobile / 6 cột desktop), ô DANH MỤC ĐANG XEM nền ĐỎ (view==='shop' && params.cat===slug — đúng ô đỏ trong ảnh mẫu); hàng link phụ nhỏ: Tất cả sản phẩm / Theo dõi đơn / Yêu thích / Cẩm nang / Đăng nhập; nút "Menu" ở thanh ngang dưới header cũng toggle cùng panel; dọn import Sheet/Avatar/LogIn.
+- home-view.tsx: (a) XÓA section "Banner promo split" (2 banner Bộ sưu tập mùa thu "Mang sắc thu vào tổ ấm" + Phòng ngủ "Giấc ngủ êm với AVH Sleep"); (b) thêm CategoryProducts — section sản phẩm CHO TỪNG DANH MỤC (title = tên danh mục, subtitle "N sản phẩm chính hãng AVH", nút "Xem tất cả", lưới ProductCard 2/3/4 cột, query /api/products?category=<slug>&limit=8, section rỗng tự ẩn) đặt ngay sau Flash Sale, TRƯỚC "Sản phẩm nổi bật"; "Hàng mới về" xếp XUỐNG dưới các section danh mục — đúng thứ tự chủ shop yêu cầu.
+- Phát hiện & dùng đúng param API: /api/products lọc bằng `category=` (không phải `cat=`) — đã verify 4 sp phong-khach / 1 sp van-phong.
+- Verify: lint + tsc sạch; agent-browser mobile 390 (sw=380; banners=false; 6 section danh mục; bấm ☰ MENU → grid 6 ô "như ảnh"; click ô → /san-pham?cat=phong-khach, grid tự đóng; mở lại → ô "Phòng Khách" NỀN ĐỎ) + desktop 1366 (grid 6 ô 1 hàng; section Phòng Ngủ/Phòng Ăn có SP + giá + Xem tất cả). "1 Issue" trên dev = warning LCP image (dev-only, không phải lỗi).
+- Clone-build commit 9002915 PASS (57/57 pages) → push → Vercel Production deployment = SUCCESS (poll đầu). Verify live: chunk c5ebe…(MENU grid) + 47104…(section danh mục) hash khớp trên production; API ?category= live trả đúng.
+
+Stage Summary:
+- Trang chủ giờ: Hero → MENU (ô đỏ) → Flash Sale → [6 section SẢN PHẨM THEO DANH MỤC] → Sản phẩm nổi bật → Hàng mới về → Bán chạy → Blog → Newsletter. Hết 2 banner thu/sleep.
+- ☰ MENU (header + thanh dưới) xổ lưới ô danh mục kiểu anhkhoa, ô đang xem nền đỏ, đăng nhập/thao tác nhanh ở hàng phụ.
+- Commit 9002915 push → Vercel SUCCESS, verified live.
