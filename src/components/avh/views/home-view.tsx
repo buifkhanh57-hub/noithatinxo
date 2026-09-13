@@ -69,24 +69,16 @@ export function HomeView() {
       {/* Hero */}
       <HeroCarousel banners={banners ?? []} />
 
-      {/* MENU — chủ shop dặn: tiêu đề chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật".
-          Lưới danh mục ĐÚNG ẢNH MẪU anhkhoa: Ô HÌNH VUÔNG xếp ĐÚNG 3 Ô/MỌI HÀNG
-          (3 ô rồi dồn xuống hàng dưới), chữ ĐẬM và NHỎ căn giữa ô, HIỆN SẴN ngay
-          trên trang chủ — khách KHÔNG cần bấm gì cứ nhìn là bấm vào mua.
-          (Khác hẳn nút ☰ MENU trên header — cái đó giữ nguyên như cũ.) */}
+      {/* Ô DANH MỤC VUÔNG kiểu anhkhoa — chủ shop bắt THÊM VÀO ĐẦU trang chủ:
+          ô HÌNH VUÔNG, ĐÚNG 3 ô/hàng rồi dồn xuống, chữ ĐẬM + NHỎ căn giữa ô
+          (đúng ảnh anhkhoa gửi). ĐỨNG TRÊN cùng, KHÔNG đụng vào phần ảnh gốc. */}
       <section className="mt-8">
-        <div className="mb-3">
-          <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
-            <span className="rounded-md bg-red-600 px-2 py-0.5 uppercase tracking-wide text-white shadow-sm">MENU</span>
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Duyệt theo không gian sống</p>
-        </div>
         {!mounted || !categories ? (
           <div className="mx-auto grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
           </div>
         ) : (
-          <nav aria-label="Danh mục sản phẩm">
+          <nav aria-label="Danh mục nhanh">
             <div className="mx-auto grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
               {orderedCategories.map((c) => (
                 <a
@@ -96,6 +88,51 @@ export function HomeView() {
                   title={c.name}
                 >
                   {c.name}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
+      </section>
+
+      {/* MENU — chủ shop dặn: tên chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật".
+          GIỮ NGUYÊN LƯỚI ẢNH DANH MỤC GỐC ("vẫn đủ nguyên ảnh"): ô vuông có
+          ảnh danh mục + tên bên dưới, 3 cột mobile / 6 cột desktop. */}
+      <section className="mt-8">
+        <div className="mb-3">
+          <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
+            <span className="rounded-md bg-red-600 px-2 py-0.5 uppercase tracking-wide text-white shadow-sm">MENU</span>
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Duyệt theo không gian sống</p>
+        </div>
+        {!mounted || !categories ? (
+          <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
+          </div>
+        ) : (
+          <nav aria-label="Danh mục sản phẩm">
+            <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+              {orderedCategories.map((c) => (
+                <a
+                  key={c.id}
+                  href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
+                  className="group flex flex-col items-center gap-2 text-center"
+                  title={c.name}
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted">
+                    {c.imageUrl ? (
+                      <Image
+                        src={c.imageUrl}
+                        alt={c.name}
+                        fill
+                        sizes="(max-width: 640px) 33vw, 160px"
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-2xl">🪑</div>
+                    )}
+                  </div>
+                  <p className="line-clamp-1 text-xs font-medium sm:text-sm group-hover:text-primary">{c.name}</p>
                 </a>
               ))}
             </div>
