@@ -902,3 +902,19 @@ Stage Summary:
 - Thứ tự danh mục chuẩn vẫn giữ ở mọi nơi; fly-to-cart animation không bị đụng tới.
 - Bonus: hết hydration error trên trang chủ.
 - Commit 0251006 → Vercel Production SUCCESS → verified live.
+
+---
+Task ID: 29
+Agent: Z.ai Code (main)
+Task: Chủ shop: "điện thoại đẹp mắt rồi, nhưng trên máy tính nó không được phân bố đều làm, như kiểu bị thừa ở trong ấy — fix sao cho điện thoại vẫn thế mà máy tính vẫn oke"
+
+Work Log:
+- Chẩn đoán: lưới ô danh mục đầu trang (commit 85b7043) dùng `max-w-md grid-cols-4` CỨNG mọi màn hình — 6 danh mục xếp 4 ô + 2 ô lẻ; desktop thì cả khối chỉ 448px giữa trang 1356px → thừa khoảng trống 2 bên + hàng lẻ.
+- home-view.tsx (section "Danh mục nhanh"): MOBILE GIỮ NGUYÊN `max-w-md grid-cols-4`; thêm `sm:max-w-4xl sm:grid-cols-6` → desktop 6 ô đúng 1 hàng ĐỀU, khối rộng 896px cân giữa. Skeleton đồng bộ (6 ô + cùng class responsive).
+- Verify dev: lint sạch; agent-browser 1366px → cols=6, cellCount=6 (1 hàng, cellW=143px, grid 896px), đúng thứ tự Đèn→Văn Phòng; 390px → cols=4, rows=2 (4+2 y như cũ, grid 356/380px). 0 page errors (chỉ warning cũ: LCP hint + DialogContent aria).
+- Commit f9d3ebc push → chờ Vercel → verify production (ghi chú dưới nếu có).
+
+Stage Summary:
+- Điện thoại: KHÔNG ĐỔI GÌ (4 ô/hàng, 2 hàng 4+2 — thứ chủ shop khen đẹp).
+- Máy tính: 6 ô/1 hàng đều tăm tắp, khối max-w-4xl cân giữa — hết hàng lẻ, hết khoảng thừa.
+- Commit f9d3ebc → Vercel.
