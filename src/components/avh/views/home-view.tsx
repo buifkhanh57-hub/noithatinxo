@@ -67,16 +67,19 @@ export function HomeView() {
   return (
     <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
       {/* Ô DANH MỤC NHỎ kiểu anhkhoa — ĐẦU TRANG, TRÊN CÙNG banner hero:
-          ô NHỎ tỉ lệ ngang ~2:1 ĐÚNG như ảnh khoa, 4 ô/hàng dồn xuống, chữ
-          ĐẬM + NHỎ (11-12px) căn giữa, bo góc nhẹ viền mảnh — nhỏ gọn đẹp. */}
+          ô NHỎ tỉ lệ ngang ~2:1 ĐÚNG như ảnh khoa, chữ ĐẬM + NHỎ (11-12px)
+          căn giữa, bo góc nhẹ viền mảnh — nhỏ gọn đẹp.
+          MOBILE: 4 ô/hàng (giữ nguyên như chủ shop khen đẹp).
+          DESKTOP (sm+): 6 ô/hàng — 6 danh mục vừa đúng 1 hàng ĐỀU, khối nới
+          max-w-4xl để hết khoảng thừa hai bên, hết hàng lẻ 2 ô. */}
       <section>
         {!mounted || !categories ? (
-          <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
+          <div className="mx-auto grid max-w-md grid-cols-4 gap-2 sm:max-w-4xl sm:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
           </div>
         ) : (
           <nav aria-label="Danh mục nhanh">
-            <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
+            <div className="mx-auto grid max-w-md grid-cols-4 gap-2 sm:max-w-4xl sm:grid-cols-6">
               {orderedCategories.map((c) => (
                 <a
                   key={c.id}
