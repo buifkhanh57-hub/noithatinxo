@@ -846,3 +846,20 @@ Stage Summary:
 - MENU bar + lưới MENU + sidebar lọc + section trang chủ: ĐỀU dùng một thứ tự danh mục chuẩn giống ảnh mẫu anhkhoa.
 - Luồng mua hàng mới: Thêm vào giỏ → ảnh sản phẩm lấp lánh bay cong vào giỏ → giỏ nhún → menu giỏ hàng mở ra đặt mua.
 - Commit a92bb87 push → Vercel SUCCESS, verified live.
+
+---
+Task ID: 26
+Agent: Z.ai Code (main)
+Task: Chủ shop phản đối "sao có 2 cái menu thế? xóa [lưới danh mục] đi, quay lại menu như cũ, tôi không muốn như thế. Với cả tôi bảo làm cái này giống ảnh khoa bro?" — kèm ảnh mẫu lần 2: LƯỚI Ô DANH MỤC 4 CỘT (ô trắng viền bo, ô đang xem nền đỏ).
+
+Work Log:
+- Chẩn đoán: Task 24 làm lưới ô MENU (xổ khi bấm ☰), Task 25 lại thêm thanh MENU ngang dưới header theo ảnh đầu tiên → web có 2 menu gây rối. Chủ shop muốn về đúng 1 menu + lưới ô theo ảnh lần 2 (4 cột).
+- header.tsx: (a) XÓA nguyên <nav> thanh MENU ngang dưới header (aria-label "MENU danh mục sản phẩm") — chỉ còn nút ☰ MENU trên header; (b) lưới ô MENU đổi từ 3 cột mobile/6 cột desktop → 3 cột mobile/4 CỘT desktop (grid-cols-3 sm:grid-cols-4) đúng ảnh mẫu; ô cao hơn (py-4), chữ đậm, hover nổi nhẹ (hover:bg-accent/40 + viền đỏ); ô đang xem giữ nền đỏ chữ trắng; giữ hàng link phụ (Tất cả sp/Theo dõi đơn/Yêu thích/Cẩm nang/Đăng nhập).
+- globals.css: dọn .avh-nav-link (chỉ thanh ngang bị xóa mới dùng).
+- Verify: lint + tsc sạch; agent-browser desktop 1366 — không còn nav ngang (oldHorizontalBarGone=true, đúng 1 nút toggle); bấm ☰ → lưới 4 cột [Đèn Trang Trí|Phòng Ăn|Phòng Khách|Phòng Ngủ / Tủ & Kệ|Văn Phòng]; vào /san-pham?cat=den-trang-tri mở lại menu → ô "Đèn Trang Trí" NỀN ĐỎ chữ trắng như ảnh khoa; mobile 390 — lưới 3 cột gọn; fly-to-cart vẫn bay + giỏ mở (smoke test ke-sach-5-tang: dialog "Giỏ hàng (1)").
+- Push affd847 → Vercel Production = SUCCESS; verify live: HTML trang chủ KHÔNG còn chuỗi "MENU danh mục sản phẩm" (thanh ngang đã biến mất) + còn "Mở menu danh mục" (nút ☰ header).
+
+Stage Summary:
+- Web chỉ còn DUY NHẤT 1 menu: nút ☰ MENU trên header → xổ lưới ô danh mục 4 cột (desktop) kiểu anhkhoa, ô đang xem nền đỏ.
+- Thứ tự danh mục chuẩn (category-order.ts) vẫn giữ cho lưới MENU + section trang chủ + sidebar lọc.
+- Commit affd847 push → Vercel SUCCESS, verified live.
