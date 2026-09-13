@@ -28,10 +28,11 @@ export function FloatingContact() {
 
   if (!mounted || view === 'admin') return null
 
-  // MOBILE: left-1.5 (6px) — chủ shop yêu cầu dịch nút hỗ trợ SÁT le trái
-  // hơn (trước là left-3 / 12px). DESKTOP (sm+): giữ nguyên left-5.
+  // MOBILE: left-3 (12px) — vị trí gốc. (Đã hoàn tác thí điểm left-1.5 —
+  // chủ shop ý nói cột "Hỗ trợ" ở FOOTER chứ không phải nút nổi.)
+  // DESKTOP (sm+): left-5 như cũ.
   return (
-    <div className="fixed bottom-4 left-1.5 z-50 flex flex-col gap-2 sm:bottom-6 sm:left-5 print:hidden">
+    <div className="fixed bottom-4 left-3 z-50 flex flex-col gap-2 sm:bottom-6 sm:left-5 print:hidden">
       <a
         href={`tel:${(hotline || '').replace(/\s/g, '')}`}
         className="group flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:bg-primary/90 sm:h-13 sm:w-13"

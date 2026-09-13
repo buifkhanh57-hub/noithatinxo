@@ -65,9 +65,11 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Main footer */}
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 py-10 md:grid-cols-4 lg:grid-cols-5">
-        <div className="col-span-2 lg:col-span-2">
+      {/* Main footer — MOBILE: grid-cols-1 (mỗi section full-width, SÁT LE
+          TRÁI theo yêu cầu chủ shop — trước đây lưới 2 cột đẩy "Hỗ trợ" vào
+          giữa/le phải màn hình). md/lg: giữ nguyên 4/5 cột như cũ. */}
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 md:grid-cols-4 lg:grid-cols-5">
+        <div className="md:col-span-2">
           <div className="flex items-center gap-2">
             {brandLogoUrl ? (
               <img src={brandLogoUrl} alt={brandName} className="h-10 w-auto" />

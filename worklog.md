@@ -958,3 +958,16 @@ Work Log:
 
 Stage Summary:
 - Mobile floating support pair now hugs the left edge; desktop position unchanged.
+---
+Task ID: 34 (sandbox session — footer mobile layout)
+Agent: Z.ai Code (via IM chat)
+Task: On MOBILE only, shift the footer "Hỗ trợ" column to the left edge (owner clarified with screenshot — earlier floating-button interpretation was wrong).
+
+Work Log:
+- Diagnosed: mobile footer grid was grid-cols-2, so "Hỗ trợ" rendered in the right column at 53% of screen width (206px/390px).
+- src/components/avh/footer.tsx: main grid grid-cols-2 → grid-cols-1 on mobile (stacks every section full-width at the left edge); brand cell col-span-2 → md:col-span-2 (prevents implicit-column overflow in 1-col grid). md:4/lg:5 columns unchanged.
+- Reverted floating-contact.tsx left-1.5 back to left-3 (that change had targeted the wrong element).
+- Browser-verified: mobile 390px "Hỗ trợ" left = 16px (was 206px); desktop 1280px footer still 5 columns, "Hỗ trợ" at 778px as before; floating buttons back at 12px. ESLint clean.
+
+Stage Summary:
+- Mobile footer now single-column stack, every section (incl. "Hỗ trợ") flush to the left edge; desktop untouched.
