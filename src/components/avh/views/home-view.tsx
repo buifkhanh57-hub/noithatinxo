@@ -157,6 +157,11 @@ export function HomeView() {
         </section>
       )}
 
+      {/* SẢN PHẨM THEO TỪNG DANH MỤC — yêu cầu chủ shop: khách vào trang chủ
+          phải thấy hàng xếp theo danh mục để biết đường mua; "Hàng mới về"
+          xếp xuống dưới các section này (từ dưới lên). Mục rỗng tự ẩn. */}
+      {categories?.map((c) => <CategoryProducts key={c.id} category={c} />)}
+
       {/* Featured */}
       <section className="mt-8">
         <SectionHeader
@@ -174,30 +179,6 @@ export function HomeView() {
             {featured.items.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         )}
-      </section>
-
-      {/* Banner promo split */}
-      <section className="mt-8 grid gap-3 md:grid-cols-2">
-        <div className="relative aspect-[16/7] overflow-hidden rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-950/40 dark:to-teal-950/40">
-          <div className="absolute inset-0 flex flex-col justify-center p-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Bộ sưu tập mùa thu</p>
-            <h3 className="mt-1 text-lg font-bold sm:text-2xl">Mang sắc thu vào tổ ấm</h3>
-            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Tone màu ấm, gỗ tự nhiên, vải linen êm ái</p>
-            <Button size="sm" className="mt-3 w-fit" onClick={() => setView('shop', { cat: 'phong-khach' })}>
-              Khám phá →
-            </Button>
-          </div>
-        </div>
-        <div className="relative aspect-[16/7] overflow-hidden rounded-xl bg-gradient-to-br from-rose-100 to-amber-100 dark:from-rose-950/40 dark:to-amber-950/40">
-          <div className="absolute inset-0 flex flex-col justify-center p-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">Phòng ngủ thư giãn</p>
-            <h3 className="mt-1 text-lg font-bold sm:text-2xl">Giấc ngủ êm với AVH Sleep</h3>
-            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Giường bọc đầu êm ái, bảo hành 36 tháng</p>
-            <Button size="sm" className="mt-3 w-fit" variant="secondary" onClick={() => setView('shop', { cat: 'phong-ngu' })}>
-              Xem ngay →
-            </Button>
-          </div>
-        </div>
       </section>
 
       {/* New arrivals */}
@@ -310,6 +291,36 @@ function SectionHeader({
         </Button>
       )}
     </div>
+  )
+}
+
+function CategoryProducts({ category }: { category: Category }) {
+  const setView = useUIStore((s) => s.setView)
+  const mounted = useMounted()
+  const { data } = useQuery<{ items: ProductListItem[] }>({
+    queryKey: ['products', 'cat', category.slug],
+    queryFn: () => api.get(`/api/products?category=${encodeURIComponent(category.slug)}&limit=8`),
+  })
+  const items = data?.items
+  // Danh mục chưa có sản phẩm → ẩn section (trang chủ không có mục rỗng)
+  if (mounted && items && items.length === 0) return null
+  return (
+    <section className="mt-8">
+      <SectionHeader
+        title={category.name}
+        subtitle={category.productCount ? `${category.productCount} sản phẩm chính hãng AVH` : 'Sản phẩm chính hãng AVH'}
+        action={() => setView('shop', { cat: category.slug })}
+      />
+      {!mounted || !items ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-lg" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {items.map((p) => <ProductCard key={p.id} product={p} />)}
+        </div>
+      )}
+    </section>
   )
 }
 

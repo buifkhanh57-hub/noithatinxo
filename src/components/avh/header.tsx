@@ -11,14 +11,11 @@ import {
   Phone,
   ChevronRight,
   LayoutDashboard,
-  LogIn,
   MessageCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/ui/sheet'
 import { useUIStore, ViewName } from '@/lib/stores/ui-store'
 import { useCartStore } from '@/lib/stores/cart-store'
 import { useWishlistStore } from '@/lib/stores/wishlist-store'
@@ -66,8 +63,10 @@ export function Header() {
 
   const [searchValue, setSearchValue] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [menuGridOpen, setMenuGridOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
+  const view = useUIStore((s) => s.view)
+  const viewParams = useUIStore((s) => s.params)
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],
@@ -83,7 +82,7 @@ export function Header() {
 
   const go = (v: ViewName, params?: Record<string, string>) => {
     setView(v, params)
-    setMobileMenuOpen(false)
+    setMenuGridOpen(false)
   }
 
   // shortcut: press "/" to focus search
@@ -150,134 +149,28 @@ export function Header() {
         )}
       >
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-1.5 px-2 sm:h-16 sm:gap-4 sm:px-4">
-          {/* Mobile menu (hamburger + MENU label, like the reference) */}
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <button
-                className={cn(
-                  'flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-2 sm:px-2',
-                  actionHover,
-                )}
-                aria-label="Mở menu"
-              >
-                <Menu className={cn('h-6 w-6', iconColor)} strokeWidth={2.5} />
-                <span
-                  className={cn(
-                    'text-sm font-extrabold uppercase tracking-wide',
-                    iconColor,
-                  )}
-                >
-                  Menu
-                </span>
-              </button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[300px] p-0">
-              <SheetHeader className="border-b px-4 py-4">
-                {mounted && user ? (
-                  /* Logged in → avatar + name, tap = account page */
-                  <button
-                    onClick={() => go('account')}
-                    className="flex w-full items-center gap-3 text-left"
-                    aria-label="Vào trang tài khoản"
-                  >
-                    <Avatar className="h-10 w-10 border border-primary/30">
-                      <AvatarFallback className="bg-primary font-bold text-primary-foreground">
-                        {(user.name || 'K').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold">{user.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {user.email || 'Tài khoản AVH'}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </button>
-                ) : (
-                  /* Guest → red login/register CTA (yêu cầu: menu có đăng nhập) */
-                  <>
-                    <SheetTitle className="text-left text-sm font-semibold text-muted-foreground">
-                      Xin chào quý khách 👋
-                    </SheetTitle>
-                    <Button
-                      className="mt-2 w-full gap-2 font-bold"
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        setAuthOpen(true)
-                      }}
-                    >
-                      <LogIn className="h-4 w-4" />
-                      Đăng nhập / Đăng ký
-                    </Button>
-                  </>
-                )}
-              </SheetHeader>
-              <nav className="flex flex-col gap-0.5 overflow-y-auto p-2" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
-                <button
-                  onClick={() => go('home')}
-                  className="flex items-center justify-between rounded px-3 py-2.5 text-sm hover:bg-accent"
-                >
-                  Trang chủ
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
-                <button
-                  onClick={() => go('shop')}
-                  className="flex items-center justify-between rounded px-3 py-2.5 text-sm font-semibold text-primary hover:bg-accent"
-                >
-                  Tất cả sản phẩm
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
-                {categories?.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => go('shop', { cat: c.slug })}
-                    className="flex items-center justify-between rounded px-3 py-2.5 text-sm hover:bg-accent"
-                  >
-                    {c.name}
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                ))}
-                <div className="my-2 border-t" />
-                <button onClick={() => go('wishlist')} className="rounded px-3 py-2.5 text-sm hover:bg-accent text-left">
-                  Sản phẩm yêu thích {mounted && wishlistCount > 0 ? `(${wishlistCount})` : ''}
-                </button>
-                <button onClick={() => go('compare')} className="rounded px-3 py-2.5 text-sm hover:bg-accent text-left">
-                  So sánh sản phẩm {mounted && compareCount > 0 ? `(${compareCount})` : ''}
-                </button>
-                <button onClick={() => go('order-tracking')} className="rounded px-3 py-2.5 text-sm hover:bg-accent text-left">
-                  Theo dõi đơn hàng
-                </button>
-                <button onClick={() => go('blog')} className="rounded px-3 py-2.5 text-sm hover:bg-accent text-left">
-                  Cẩm nang nội thất
-                </button>
-                {user?.role === 'ADMIN' && (
-                  <button onClick={() => go('admin')} className="rounded px-3 py-2.5 text-sm hover:bg-accent text-left flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4" /> Quản trị
-                  </button>
-                )}
-
-                {/* Menu footer: hotline + zalo (thêm phần sdt & zalo theo yêu cầu) */}
-                <div className="mt-3 rounded-lg border bg-card p-3">
-                  <a
-                    href={`tel:${(hotline || '').replace(/\s/g, '')}`}
-                    className="flex items-center gap-2 text-sm font-semibold text-primary"
-                  >
-                    <Phone className="h-4 w-4" /> {hotline}
-                  </a>
-                  {zalo && (
-                    <a
-                      href={zaloHref(zalo)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#0180c7]"
-                    >
-                      <MessageCircle className="h-4 w-4" /> Chat Zalo
-                    </a>
-                  )}
-                </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
+          {/* ☰ MENU — bấm xổ LƯỚI Ô DANH MỤC ngay dưới header (đúng ảnh mẫu
+              anhkhoa chủ shop gửi: ô viền bo tròn tên danh mục, ô đang xem
+              nền đỏ). Trước đây là drawer trái — nay thay bằng lưới ô này. */}
+          <button
+            className={cn(
+              'flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-2 sm:px-2',
+              actionHover,
+            )}
+            onClick={() => setMenuGridOpen((o) => !o)}
+            aria-expanded={menuGridOpen}
+            aria-controls="avh-menu-grid"
+            aria-label={menuGridOpen ? 'Đóng menu danh mục' : 'Mở menu danh mục'}
+          >
+            {menuGridOpen ? (
+              <X className={cn('h-6 w-6', iconColor)} strokeWidth={2.5} />
+            ) : (
+              <Menu className={cn('h-6 w-6', iconColor)} strokeWidth={2.5} />
+            )}
+            <span className={cn('text-sm font-extrabold uppercase tracking-wide', iconColor)}>
+              Menu
+            </span>
+          </button>
 
           {/* Brand — logo + name + tagline, luôn hiển thị cả mobile.
               KHÔNG dùng shrink-0 cho cả khối: trên mobile 390px header bị
@@ -451,6 +344,54 @@ export function Header() {
           </div>
         </div>
 
+        {/* Lưới ô danh mục khi bấm MENU — giống ảnh mẫu anhkhoa:
+            ô viền bo tròn tên danh mục, ô đang xem nền đỏ. Nằm TRONG header
+            sticky nên mở lúc nào cũng thấy ngay, không cần cuộn lên đầu. */}
+        {menuGridOpen && (
+          <div id="avh-menu-grid" className={cn('border-t px-3 py-3 sm:px-4', isWood ? 'border-white/15 bg-black/20' : 'border-border bg-background')}>
+            <nav aria-label="Lưới danh mục MENU">
+              <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 sm:grid-cols-6">
+                {categories?.map((c) => {
+                  const active = view === 'shop' && viewParams.cat === c.slug
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => go('shop', { cat: c.slug })}
+                      className={cn(
+                        'rounded-lg border px-2 py-3 text-center text-xs font-semibold transition sm:text-sm',
+                        active
+                          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                          : cn(
+                              'bg-card',
+                              isWood
+                                ? 'border-white/25 text-[#f7ecd8] hover:border-white/60 hover:bg-white/10'
+                                : 'border-border text-foreground/90 hover:border-primary/60 hover:text-primary',
+                            ),
+                      )}
+                    >
+                      {c.name}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className={cn('mx-auto mt-2.5 flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-1 border-t pt-2 text-[11px] sm:text-xs', isWood ? 'border-white/15 text-[#f6ead0]' : 'border-border/60 text-muted-foreground')}>
+                <button onClick={() => go('shop')} className="font-medium transition hover:text-primary">Tất cả sản phẩm</button>
+                <button onClick={() => go('order-tracking')} className="font-medium transition hover:text-primary">Theo dõi đơn hàng</button>
+                <button onClick={() => go('wishlist')} className="font-medium transition hover:text-primary">Yêu thích</button>
+                <button onClick={() => go('blog')} className="font-medium transition hover:text-primary">Cẩm nang nội thất</button>
+                {mounted && !user && (
+                  <button
+                    onClick={() => { setMenuGridOpen(false); setAuthOpen(true) }}
+                    className="font-bold text-primary hover:underline"
+                  >
+                    Đăng nhập / Đăng ký
+                  </button>
+                )}
+              </div>
+            </nav>
+          </div>
+        )}
+
         {/* Mobile search bar */}
         {mobileSearchOpen && (
           <div className={cn('border-t px-3 py-2 md:hidden', isWood ? 'border-white/15' : 'border-border')}>
@@ -482,10 +423,15 @@ export function Header() {
           Mobile: cuộn ngang, ẩn scrollbar cho gọn. */}
       <nav aria-label="MENU danh mục sản phẩm" className="border-b border-border/70 bg-card">
         <div className="mx-auto flex max-w-7xl items-stretch overflow-x-auto px-2 [scrollbar-width:none] sm:px-4 [&::-webkit-scrollbar]:hidden">
-          <span className="mr-1 flex shrink-0 items-center gap-1.5 border-r border-border/70 pr-2.5 text-xs font-extrabold uppercase tracking-wide text-primary sm:text-sm">
+          <button
+            onClick={() => setMenuGridOpen((o) => !o)}
+            aria-expanded={menuGridOpen}
+            aria-label="Mở/đóng lưới danh mục"
+            className="mr-1 flex shrink-0 items-center gap-1.5 border-r border-border/70 pr-2.5 text-xs font-extrabold uppercase tracking-wide text-primary transition hover:text-primary/80 sm:text-sm"
+          >
             <Menu className="h-4 w-4" strokeWidth={2.5} />
             Menu
-          </span>
+          </button>
           <button
             onClick={() => go('shop')}
             className="shrink-0 whitespace-nowrap px-2.5 py-2.5 text-xs font-semibold text-foreground/85 transition hover:text-primary sm:text-sm"
