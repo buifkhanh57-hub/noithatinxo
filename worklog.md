@@ -984,3 +984,18 @@ Work Log:
 
 Stage Summary:
 - Brand red is now a deep, premium mahogany consistent across every brand surface; semantic status colors preserved.
+
+---
+Task ID: 36
+Agent: Z.ai Code (main)
+Task: Đậm thêm 1 chút xíu màu đỏ thương hiệu (yêu cầu "dam them 1 ti ti ti nua thoi" sau bản trầm 0.46)
+
+Work Log:
+- globals.css: đồng bộ hạ L của --primary/--ring/--chart-1/--sidebar-primary/--sidebar-ring: light 0.46→0.43, dark 0.60→0.57; chroma 0.155→0.15, giữ hue 26 (vẫn tông mahogany/burgundy)
+- Banner flash sale (from-red-900 via-red-800 to-red-700) giữ nguyên — vốn đã đậm
+- agent-browser: computed --primary = lab(32.37%) (bản trước ~35.5%); screenshot desktop 1280px (topbar, badge MENU, badge giảm giá, nút Mua Hàng, giá) + mobile 390px đều đúng tông đậm mới
+- bun run lint: sạch
+
+Stage Summary:
+- Đỏ thương hiệu giờ là lab(32.4%) — đậm thêm 1 nấc nhỏ đúng mức "1 ti ti ti", không tươi trở lại
+- Commit + push origin/main ngay (Vercel tự deploy)

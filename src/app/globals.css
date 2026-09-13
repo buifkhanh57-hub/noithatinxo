@@ -58,9 +58,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.02 50);
   /* primary: brand red ĐỎ TRẦM (mahogany/burgundy — chủ shop yêu cầu đậm
-     đạm hơn, đỏ tươi quá không hợp nội thất cao cấp). Tinh chỉnh ngày
-     tạo: L 0.55→0.46, C 0.22→0.155 */
-  --primary: oklch(0.46 0.155 26);
+     đạm hơn, đỏ tươi quá không hợp nội thất cao cấp). Tinh chỉnh: L 0.55→0.46
+     →0.43 (đậm thêm 1 chút theo yêu cầu), C 0.22→0.155 */
+  --primary: oklch(0.43 0.15 26);
   --primary-foreground: oklch(0.985 0.005 80);
   /* secondary: cream/sand */
   --secondary: oklch(0.95 0.015 75);
@@ -72,20 +72,20 @@
   --destructive: oklch(0.58 0.22 25);
   --border: oklch(0.90 0.015 75);
   --input: oklch(0.92 0.015 75);
-  --ring: oklch(0.46 0.155 26);
-  --chart-1: oklch(0.46 0.155 26);  /* brand red trầm */
+  --ring: oklch(0.43 0.15 26);
+  --chart-1: oklch(0.43 0.15 26);  /* brand red trầm */
   --chart-2: oklch(0.62 0.10 130); /* sage green */
   --chart-3: oklch(0.50 0.08 60);  /* walnut */
   --chart-4: oklch(0.70 0.12 85);  /* honey */
   --chart-5: oklch(0.45 0.06 250); /* slate */
   --sidebar: oklch(0.985 0.005 80);
   --sidebar-foreground: oklch(0.22 0.02 50);
-  --sidebar-primary: oklch(0.46 0.155 26);
+  --sidebar-primary: oklch(0.43 0.15 26);
   --sidebar-primary-foreground: oklch(0.985 0.005 80);
   --sidebar-accent: oklch(0.92 0.04 70);
   --sidebar-accent-foreground: oklch(0.30 0.05 45);
   --sidebar-border: oklch(0.90 0.015 75);
-  --sidebar-ring: oklch(0.46 0.155 26);
+  --sidebar-ring: oklch(0.43 0.15 26);
 }
 
 .dark {
@@ -95,7 +95,7 @@
   --card-foreground: oklch(0.96 0.01 80);
   --popover: oklch(0.22 0.015 50);
   --popover-foreground: oklch(0.96 0.01 80);
-  --primary: oklch(0.60 0.155 26);
+  --primary: oklch(0.57 0.15 26);
   --primary-foreground: oklch(0.985 0.005 80);
   --secondary: oklch(0.28 0.02 50);
   --secondary-foreground: oklch(0.95 0.01 80);
@@ -106,20 +106,20 @@
   --destructive: oklch(0.70 0.20 22);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.60 0.155 26);
-  --chart-1: oklch(0.60 0.155 26);
+  --ring: oklch(0.57 0.15 26);
+  --chart-1: oklch(0.57 0.15 26);
   --chart-2: oklch(0.70 0.10 130);
   --chart-3: oklch(0.60 0.08 60);
   --chart-4: oklch(0.75 0.12 85);
   --chart-5: oklch(0.55 0.06 250);
   --sidebar: oklch(0.22 0.015 50);
   --sidebar-foreground: oklch(0.96 0.01 80);
-  --sidebar-primary: oklch(0.60 0.155 26);
+  --sidebar-primary: oklch(0.57 0.15 26);
   --sidebar-primary-foreground: oklch(0.985 0.005 80);
   --sidebar-accent: oklch(0.32 0.03 50);
   --sidebar-accent-foreground: oklch(0.95 0.01 80);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.60 0.155 26);
+  --sidebar-ring: oklch(0.57 0.15 26);
 }
 
 @layer base {
