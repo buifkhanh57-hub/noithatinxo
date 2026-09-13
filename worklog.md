@@ -947,3 +947,14 @@ Work Log:
 Stage Summary:
 - Homepage desktop pill row now shows ONLY category pills; scales to ~8 categories single-row.
 - Workflow agreed: every completed fix is committed AND pushed to buifkhanh57-hub/noithatinxo main (Vercel deploys automatically).
+---
+Task ID: 33 (sandbox session — mobile floating contact position)
+Agent: Z.ai Code (via IM chat)
+Task: Shift the mobile-only floating support buttons (Gọi tư vấn + Chat Zalo) closer to the left edge.
+
+Work Log:
+- src/components/avh/floating-contact.tsx: container left-3 (12px) → left-1.5 (6px) on mobile; sm:left-5 (20px) desktop untouched — mobile-only change as requested.
+- Browser-verified: mobile 390px floating phone button left = 6px (was 12px); desktop 1280px still 20px. ESLint clean.
+
+Stage Summary:
+- Mobile floating support pair now hugs the left edge; desktop position unchanged.
