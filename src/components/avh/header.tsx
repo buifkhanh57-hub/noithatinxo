@@ -348,16 +348,14 @@ export function Header() {
           </div>
         </div>
 
-        {/* Lưới ô danh mục khi bấm MENU — ĐÚNG NHƯ ẢNH MẪU anhkhoa (ảnh chủ
-            shop gửi lần 2): LƯỚI Ô 4 CỘT (desktop), ô viền bo tròn nền trắng
-            chữ đen, ô DANH MỤC ĐANG XEM NỀN ĐỎ chữ trắng. Đây là MENU DUY
-            NHẤT của web — thanh menu ngang đã XÓA theo yêu cầu chủ shop
-            ("sao có 2 cái menu thế? xóa đi, quay lại menu như cũ"). Nằm
-            TRONG header sticky nên mở lúc nào cũng thấy ngay. */}
+        {/* Lưới ô danh mục khi bấm MENU — GIỮ NGUYÊN NHƯ CŨ (chủ shop dặn
+            "ấn MENU vẫn như cũ, như trước ấy, không liên quan gì đến ảnh khoa"):
+            3 cột mobile / 6 cột desktop, ô viền bo tên danh mục, ô đang xem
+            nền đỏ. Phần giống ảnh khoa là khung DANH MỤC ở trang chủ. */}
         {menuGridOpen && (
-          <div id="avh-menu-grid" className={cn('avh-menu-drop border-t px-3 py-4 sm:px-4', isWood ? 'border-white/15 bg-black/20' : 'border-border bg-background')}>
+          <div id="avh-menu-grid" className={cn('avh-menu-drop border-t px-3 py-3 sm:px-4', isWood ? 'border-white/15 bg-black/20' : 'border-border bg-background')}>
             <nav aria-label="Lưới danh mục MENU">
-              <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2.5 sm:grid-cols-4">
+              <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 sm:grid-cols-6">
                 {categories?.map((c) => {
                   const active = view === 'shop' && viewParams.cat === c.slug
                   return (
@@ -365,14 +363,14 @@ export function Header() {
                       key={c.id}
                       onClick={() => go('shop', { cat: c.slug })}
                       className={cn(
-                        'rounded-lg border px-2 py-4 text-center text-xs font-bold transition-all duration-200 sm:text-sm',
+                        'rounded-lg border px-2 py-3 text-center text-xs font-semibold transition sm:text-sm',
                         active
-                          ? 'border-primary bg-primary text-primary-foreground shadow-md'
+                          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                           : cn(
                               'bg-card',
                               isWood
                                 ? 'border-white/25 text-[#f7ecd8] hover:border-white/60 hover:bg-white/10'
-                                : 'border-border text-foreground/90 hover:border-primary/70 hover:bg-accent/40 hover:text-primary',
+                                : 'border-border text-foreground/90 hover:border-primary/60 hover:text-primary',
                             ),
                       )}
                     >

@@ -69,9 +69,11 @@ export function HomeView() {
       {/* Hero */}
       <HeroCarousel banners={banners ?? []} />
 
-      {/* MENU — chủ shop dặn: tên chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật",
-          và BỎ hẳn dải 4 ô ưu đãi (Giao toàn quốc…) ở đầu trang.
-          Giữ nguyên lưới ảnh danh mục (3 cột mobile / 6 cột desktop). */}
+      {/* MENU — chủ shop dặn: tiêu đề chỉ là "MENU" (ô đỏ), KHÔNG kèm chữ "nổi bật".
+          Lưới danh mục ĐÚNG ẢNH MẪU anhkhoa (ảnh lần 2): các Ô DANH MỤC NHỎ
+          xếp TỪNG HÀNG (4 ô/hàng desktop, 3 ô/hàng mobile), HIỆN SẴN ngay trên
+          trang chủ — khách KHÔNG cần bấm gì cứ nhìn là bấm vào mua.
+          (Khác hẳn nút ☰ MENU trên header — cái đó giữ nguyên như cũ.) */}
       <section className="mt-8">
         <div className="mb-3">
           <h2 className="flex items-center gap-1.5 text-lg font-extrabold sm:text-xl">
@@ -80,33 +82,20 @@ export function HomeView() {
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Duyệt theo không gian sống</p>
         </div>
         {!mounted || !categories ? (
-          <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-11 rounded-lg" />)}
           </div>
         ) : (
           <nav aria-label="Danh mục sản phẩm">
-            <div className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-6">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {orderedCategories.map((c) => (
                 <a
                   key={c.id}
                   href={`/san-pham?cat=${encodeURIComponent(c.slug)}`}
-                  className="group flex flex-col items-center gap-2 text-center"
+                  className="rounded-lg border border-border bg-card px-2 py-3 text-center text-xs font-semibold text-foreground/90 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:text-primary hover:shadow-sm sm:text-sm"
                   title={c.name}
                 >
-                  <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted">
-                    {c.imageUrl ? (
-                      <Image
-                        src={c.imageUrl}
-                        alt={c.name}
-                        fill
-                        sizes="(max-width: 640px) 33vw, 160px"
-                        className="object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-2xl">🪑</div>
-                    )}
-                  </div>
-                  <p className="line-clamp-1 text-xs font-medium sm:text-sm group-hover:text-primary">{c.name}</p>
+                  {c.name}
                 </a>
               ))}
             </div>
